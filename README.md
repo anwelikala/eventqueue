@@ -66,13 +66,16 @@ without it.
 Set these as environment variables wherever you run the app:
 
 ```bash
-SMTP_HOST=smtp.gmail.com
+SMTP_HOST=smtp-relay.brevo.com
 SMTP_PORT=587
-SMTP_USER=youraddress@gmail.com
-SMTP_PASS=your16charapppassword
-EMAIL_FROM="Mobile Consular Services <youraddress@gmail.com>"
-ADMIN_EMAIL=youraddress@gmail.com
+SMTP_USER=<the SMTP login Brevo shows you>
+SMTP_PASS=<the SMTP key you generate in Brevo>
+EMAIL_FROM="Mobile Consular Services <the-email-you-verified@yourdomain.com>"
+ADMIN_EMAIL=you@example.com
 ```
+
+(Any SMTP provider works the same way — Gmail, Outlook, SendGrid, Mailgun,
+etc. — just use that provider's host, port, and credentials instead.)
 
 - `SMTP_HOST`, `SMTP_USER`, and `SMTP_PASS` are required to turn emailing
   on — without all three, the app silently skips sending and works
@@ -83,18 +86,13 @@ ADMIN_EMAIL=youraddress@gmail.com
   registration as it happens, independent of whatever's stored on the
   server's disk.
 
-**Using Gmail**: you can't use your normal Gmail password here. Turn on
-2-Step Verification on the Google account, then create an
-[App Password](https://myaccount.google.com/apppasswords) and use that as
-`SMTP_PASS`. Any other SMTP provider (Outlook, a work email account,
-SendGrid, Mailgun, etc.) works the same way — just use that provider's
-SMTP host, port, and credentials instead.
-
 On Render, add these as environment variables in the service's
-**Environment** tab — no code change or redeploy needed.
+**Environment** tab. Saving them triggers an automatic redeploy — check
+the **Events** tab to confirm the new deploy finished before testing.
 
 The admin page shows whether email confirmations are currently enabled,
-under the "Visitors" heading.
+under the "Visitors" heading — check that first if emails don't seem to
+be sending.
 
 ## Changing the list of services
 
@@ -133,6 +131,11 @@ variables in Render's dashboard, and share the resulting URL.
 - Visitor names, phone numbers, emails, and service needs are only ever
   shown on the admin page — the public register and display screens never
   expose them.
+- Once you enter the call desk or admin password on a device, that device
+  stays logged in (via `sessionStorage`) until its browser tab is closed —
+  this is intentional, so staff aren't re-entering the password constantly.
+  To test the password screen itself, use a private/incognito window or
+  close the tab first.
 - This is a simple shared-password model, not individual staff accounts —
   fine for a single trusted event team.
 - If two visitors submit the registration form at the exact same instant,

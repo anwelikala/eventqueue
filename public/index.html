@@ -653,7 +653,7 @@
         showToast('Recalled number ' + String(state.nowServing).padStart(3,'0'));
       }catch(e){ /* handled */ }
     };
-    startPolling(async ()=>{
+    async function refreshCallDesk(){
       try{
         state = await api.callState();
         const waitingNow = Math.max(0, state.lastIssued - state.nowServing);
@@ -663,8 +663,10 @@
         if(servingEl) servingEl.textContent = String(state.nowServing).padStart(3,'0');
         if(waitingEl) waitingEl.textContent = waitingNow;
         if(btn) btn.disabled = waitingNow <= 0;
-      }catch(e){ /* handled */ }
-    });
+      }catch(e){ /* handled by auth/offline handlers */ }
+    }
+    refreshCallDesk();
+    startPolling(refreshCallDesk);
   }
 
   /* ---------------- ADMIN ---------------- */
