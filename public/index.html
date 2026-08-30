@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Queue Ticket System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2440;
+    --ink-soft:#2B3560;
+    --paper:#EFE9DC;
+    --paper-dark:#E3DCC9;
+    --amber:#D8912E;
+    --amber-deep:#B87421;
+    --teal:#2F7A6B;
+    --rust:#B14A29;
+    --board-digit:#F7F4EC;
+    --line: rgba(27,36,64,0.14);
+    --shadow: 0 18px 40px -18px rgba(27,36,64,0.35);
+    --font-display:'Space Mono', 'Courier New', monospace;
+    --font-body:'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--font-body);
+    background:var(--paper);
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{min-height:100vh;display:flex;flex-direction:column;}
+
+  /* ---------- shared bits ---------- */
+  .topline{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 24px;
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    display:flex;align-items:baseline;gap:10px;
+  }
+  .brand .mark{
+    font-family:var(--font-display);font-weight:700;
+    background:var(--ink);color:var(--board-digit);
+    padding:4px 8px;border-radius:4px;font-size:13px;letter-spacing:1px;
+  }
+  .brand .title{font-weight:700;font-size:16px;}
+  .home-link{
+    font-size:13px;color:var(--ink-soft);text-decoration:none;
+    border:1px solid var(--line);padding:8px 14px;border-radius:100px;
+    font-weight:600;cursor:pointer;background:transparent;
+    font-family:var(--font-body);
+  }
+  .home-link:hover{border-color:var(--ink);}
+  .center-col{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:32px 20px 56px;
+  }
+  button{font-family:var(--font-body);}
+  .primary-btn{
+    background:var(--ink);color:var(--board-digit);
+    border:none;padding:18px 34px;border-radius:14px;
+    font-size:17px;font-weight:700;cursor:pointer;
+    box-shadow:var(--shadow);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .primary-btn:hover{transform:translateY(-2px);}
+  .primary-btn:active{transform:translateY(0);}
+  .primary-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+  .ghost-btn{
+    background:transparent;color:var(--ink);border:1.5px solid var(--ink);
+    padding:14px 26px;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;
+  }
+  .rust-btn{
+    background:transparent;color:var(--rust);border:1.5px solid var(--rust);
+    padding:10px 18px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;
+  }
+
+  /* ---------- landing ---------- */
+  .role-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:18px;
+    max-width:920px;width:100%;margin-top:28px;
+  }
+  @media (max-width:820px){ .role-grid{grid-template-columns:1fr; max-width:420px;} }
+  .role-card{
+    background:#fff;border:1px solid var(--line);border-radius:18px;
+    padding:28px 22px;text-align:left;cursor:pointer;
+    box-shadow:var(--shadow);
+    transition:transform .15s ease;
+  }
+  .role-card:hover{transform:translateY(-4px);}
+  .role-card .icon{
+    width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:700;font-size:18px;color:#fff;margin-bottom:16px;
+  }
+  .role-card h3{margin:0 0 8px;font-size:18px;}
+  .role-card p{margin:0;font-size:14px;color:#5b5f73;line-height:1.5;}
+  .landing-title{font-size:clamp(28px,4vw,40px);font-weight:800;margin:0 0 6px;text-align:center;}
+  .landing-sub{color:#5b5f73;font-size:15px;margin:0;text-align:center;max-width:520px;}
+
+  /* ---------- register / ticket ---------- */
+  .ticket-wrap{width:100%;max-width:380px;}
+  .ticket{
+    position:relative;background:#fff;border-radius:4px;
+    padding:36px 28px 30px;text-align:center;
+    box-shadow:var(--shadow);
+    background-image: repeating-linear-gradient(180deg, transparent, transparent 27px, rgba(27,36,64,0.05) 28px);
+  }
+  .ticket::before, .ticket::after{
+    content:"";position:absolute;top:50%;transform:translateY(-50%);
+    width:24px;height:24px;background:var(--paper);border-radius:50%;
+  }
+  .ticket::before{left:-12px;}
+  .ticket::after{right:-12px;}
+  .ticket .perf{
+    position:absolute;left:14px;right:14px;top:0;height:0;
+    border-top:2px dashed var(--line);
+  }
+  .ticket-eyebrow{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--amber-deep);font-weight:700;margin-bottom:14px;}
+  .ticket-number{
+    font-family:var(--font-display);font-weight:700;font-size:88px;line-height:1;
+    color:var(--ink);margin:6px 0 10px;
+    letter-spacing:2px;
+  }
+  .ticket-hint{font-size:14px;color:#5b5f73;margin:0 0 18px;line-height:1.5;}
+  .ticket-divider{border-top:2px dashed var(--line);margin:18px 0;}
+  .ticket-meta{display:flex;justify-content:space-between;font-size:12px;color:#8a8d9e;text-transform:uppercase;letter-spacing:1px;}
+  .ahead-pill{
+    display:inline-block;margin-top:16px;background:var(--paper-dark);
+    padding:8px 16px;border-radius:100px;font-size:13px;font-weight:700;color:var(--ink-soft);
+  }
+  .get-number-card{
+    background:#fff;border-radius:18px;padding:48px 34px;text-align:center;
+    box-shadow:var(--shadow);max-width:420px;width:100%;
+  }
+  .get-number-card h2{margin:0 0 10px;font-size:24px;}
+  .get-number-card p{margin:0 0 26px;color:#5b5f73;font-size:15px;line-height:1.55;}
+  .new-ticket-link{
+    display:block;margin-top:22px;background:none;border:none;color:var(--ink-soft);
+    font-size:14px;text-decoration:underline;cursor:pointer;font-family:var(--font-body);
+  }
+
+  /* ---------- display board ---------- */
+  .board-view{background:var(--ink);color:var(--board-digit);flex:1;display:flex;flex-direction:column;}
+  .board-view .topline{border-bottom:1px solid rgba(247,244,236,0.14);}
+  .board-view .brand .mark{background:var(--amber);color:var(--ink);}
+  .board-view .brand .title{color:var(--board-digit);}
+  .board-view .home-link{color:var(--board-digit);border-color:rgba(247,244,236,0.35);}
+  .board-view .home-link:hover{border-color:var(--board-digit);}
+  .board-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;}
+  .serving-label{font-size:clamp(16px,2.6vw,22px);letter-spacing:6px;text-transform:uppercase;color:var(--amber);font-weight:700;}
+  .serving-number{
+    font-family:var(--font-display);font-weight:700;
+    font-size:clamp(120px,26vw,300px);line-height:1;
+    color:var(--board-digit);
+  }
+  .serving-number.pulse{animation:pulse 900ms ease;}
+  @media (prefers-reduced-motion: reduce){ .serving-number.pulse{animation:none;} }
+  @keyframes pulse{
+    0%{ transform:scale(1); text-shadow: 0 0 0 rgba(216,145,46,0); }
+    35%{ transform:scale(1.05); text-shadow: 0 0 60px rgba(216,145,46,0.55); }
+    100%{ transform:scale(1); text-shadow: 0 0 0 rgba(216,145,46,0); }
+  }
+  .board-sub{font-size:15px;color:rgba(247,244,236,0.6);}
+  .board-footer{text-align:center;padding:18px;font-size:12px;color:rgba(247,244,236,0.4);letter-spacing:1px;text-transform:uppercase;}
+
+  /* ---------- staff ---------- */
+  .staff-grid{
+    display:grid;grid-template-columns:1.1fr 0.9fr;gap:22px;
+    max-width:880px;width:100%;
+  }
+  @media (max-width:760px){ .staff-grid{grid-template-columns:1fr;} }
+  .panel{background:#fff;border-radius:18px;padding:28px;box-shadow:var(--shadow);}
+  .panel h3{margin:0 0 4px;font-size:14px;text-transform:uppercase;letter-spacing:1.5px;color:#8a8d9e;}
+  .stat-row{display:flex;gap:16px;margin-top:18px;}
+  .stat{flex:1;background:var(--paper);border-radius:14px;padding:16px;text-align:center;}
+  .stat .num{font-family:var(--font-display);font-weight:700;font-size:34px;}
+  .stat .lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#8a8d9e;margin-top:4px;}
+  .call-next-btn{width:100%;margin-top:22px;padding:22px;font-size:20px;border-radius:16px;}
+  .btn-row{display:flex;gap:10px;margin-top:12px;}
+  .btn-row .ghost-btn{flex:1;}
+  label.field-label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a8d9e;margin-bottom:8px;}
+  input.text-input{
+    width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);
+    font-size:15px;font-family:var(--font-body);
+  }
+  input.text-input:focus{outline:2px solid var(--amber);outline-offset:1px;border-color:var(--amber);}
+  .save-row{display:flex;gap:10px;margin-top:12px;}
+  .danger-zone{margin-top:26px;padding-top:20px;border-top:1px solid var(--line);}
+  .danger-zone p{font-size:13px;color:#8a8d9e;margin:0 0 12px;}
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:var(--board-digit);padding:12px 22px;border-radius:100px;
+    font-size:14px;font-weight:600;box-shadow:var(--shadow);opacity:0;pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
+  .offline-banner{
+    background:var(--rust);color:#fff;text-align:center;font-size:13px;font-weight:600;
+    padding:8px;display:none;
+  }
+  .offline-banner.show{display:block;}
+</style>
+</head>
+<body>
+
+<div class="offline-banner" id="offline-banner">Can't reach the server — retrying…</div>
+<div class="app" id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  let state = { title: 'Queue', lastIssued: 0, nowServing: 0, updatedAt: 0 };
+  let view = 'landing'; // landing | register | display | staff
+  let myTicket = null;
+  let pollTimer = null;
+  let lastServingSeen = null;
+
+  const app = document.getElementById('app');
+  const toastEl = document.getElementById('toast');
+  const offlineBanner = document.getElementById('offline-banner');
+
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=> toastEl.classList.remove('show'), 2200);
+  }
+
+  function setOffline(isOffline){
+    offlineBanner.classList.toggle('show', isOffline);
+  }
+
+  async function apiCall(path, opts){
+    try{
+      const res = await fetch(path, opts);
+      if(!res.ok) throw new Error('Bad response: ' + res.status);
+      setOffline(false);
+      return await res.json();
+    }catch(err){
+      console.error('API error on', path, err);
+      setOffline(true);
+      throw err;
+    }
+  }
+
+  const api = {
+    getState: () => apiCall('/api/state'),
+    register: () => apiCall('/api/register', { method:'POST' }),
+    callNext: () => apiCall('/api/call-next', { method:'POST' }),
+    recall: () => apiCall('/api/recall', { method:'POST' }),
+    reset: () => apiCall('/api/reset', { method:'POST' }),
+    setTitle: (title) => apiCall('/api/title', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ title })
+    })
+  };
+
+  function startPolling(renderFn){
+    stopPolling();
+    pollTimer = setInterval(async ()=>{
+      try{
+        state = await api.getState();
+        renderFn();
+      }catch(e){ /* offline banner already shown */ }
+    }, 2500);
+  }
+  function stopPolling(){
+    if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
+  }
+
+  function goto(v){
+    stopPolling();
+    view = v;
+    render();
+  }
+
+  function topline(dark, homeVisible){
+    return `
+      <div class="topline">
+        <div class="brand">
+          <span class="mark">Q</span>
+          <span class="title">${escapeHtml(state.title || 'Queue')}</span>
+        </div>
+        ${homeVisible ? `<button class="home-link" onclick="__app.goto('landing')">Home</button>` : `<span></span>`}
+      </div>
+    `;
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  /* ---------------- LANDING ---------------- */
+  function renderLanding(){
+    app.innerHTML = `
+      ${topline(false, false)}
+      <div class="center-col">
+        <h1 class="landing-title">Welcome</h1>
+        <p class="landing-sub">Choose what you're here to do at <strong>${escapeHtml(state.title)}</strong>.</p>
+        <div class="role-grid">
+          <div class="role-card" onclick="__app.goto('register')">
+            <div class="icon" style="background:var(--amber);">#</div>
+            <h3>Get my number</h3>
+            <p>Visitors register here and receive a ticket number. You'll be helped in order.</p>
+          </div>
+          <div class="role-card" onclick="__app.goto('display')">
+            <div class="icon" style="background:var(--ink);">▤</div>
+            <h3>Show queue board</h3>
+            <p>Put this on the screen everyone can see. It shows which number is being helped now.</p>
+          </div>
+          <div class="role-card" onclick="__app.goto('staff')">
+            <div class="icon" style="background:var(--teal);">✓</div>
+            <h3>Staff control</h3>
+            <p>Call the next number, check how many are waiting, and reset the queue.</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /* ---------------- REGISTER ---------------- */
+  function renderRegisterIntro(){
+    app.innerHTML = `
+      ${topline(false, true)}
+      <div class="center-col">
+        <div class="get-number-card">
+          <h2>Get your number</h2>
+          <p>Tap the button below. You'll get a number and we'll help you in that order — no need to stay in a physical line.</p>
+          <button class="primary-btn" id="pull-ticket-btn" style="width:100%;">Get my number</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('pull-ticket-btn').onclick = pullTicket;
+  }
+
+  async function pullTicket(){
+    try{
+      const result = await api.register();
+      myTicket = result.number;
+      state = result.state;
+      renderTicket();
+      startPolling(renderTicket);
+    }catch(e){
+      showToast("Couldn't reach the server — try again.");
+    }
+  }
+
+  function renderTicket(){
+    const ahead = Math.max(0, myTicket - state.nowServing - 1);
+    app.innerHTML = `
+      ${topline(false, true)}
+      <div class="center-col">
+        <div class="ticket-wrap">
+          <div class="ticket">
+            <div class="perf"></div>
+            <div class="ticket-eyebrow">Your number</div>
+            <div class="ticket-number">${String(myTicket).padStart(3,'0')}</div>
+            <p class="ticket-hint">Watch the queue screen or wait for your number to be called.</p>
+            <div class="ticket-divider"></div>
+            <div class="ticket-meta">
+              <span>Now serving ${String(state.nowServing).padStart(3,'0')}</span>
+              <span>${escapeHtml(state.title)}</span>
+            </div>
+          </div>
+          <div style="text-align:center;">
+            <div class="ahead-pill">${ahead === 0 ? "You're next" : ahead + ' number' + (ahead===1?'':'s') + ' ahead of you'}</div>
+          </div>
+          <button class="new-ticket-link" onclick="__app.goto('register')">Get a different number</button>
+        </div>
+      </div>
+    `;
+  }
+
+  /* ---------------- DISPLAY ---------------- */
+  function renderDisplay(){
+    app.innerHTML = `
+      <div class="board-view">
+        ${topline(true, true)}
+        <div class="board-center">
+          <div class="serving-label">Now serving</div>
+          <div class="serving-number" id="serving-num">${String(state.nowServing).padStart(3,'0')}</div>
+          <div class="board-sub">${state.lastIssued > state.nowServing ? (state.lastIssued - state.nowServing) + ' waiting' : 'No one waiting'}</div>
+        </div>
+        <div class="board-footer">${escapeHtml(state.title)}</div>
+      </div>
+    `;
+    lastServingSeen = state.nowServing;
+    startPolling(()=>{
+      const numEl = document.getElementById('serving-num');
+      if(!numEl){ renderDisplay(); return; }
+      if(state.nowServing !== lastServingSeen){
+        lastServingSeen = state.nowServing;
+        numEl.textContent = String(state.nowServing).padStart(3,'0');
+        numEl.classList.remove('pulse');
+        void numEl.offsetWidth;
+        numEl.classList.add('pulse');
+        const subEl = numEl.parentElement.querySelector('.board-sub');
+        if(subEl){ subEl.textContent = state.lastIssued > state.nowServing ? (state.lastIssued - state.nowServing) + ' waiting' : 'No one waiting'; }
+      }
+    });
+  }
+
+  /* ---------------- STAFF ---------------- */
+  function renderStaff(){
+    const waiting = Math.max(0, state.lastIssued - state.nowServing);
+    app.innerHTML = `
+      ${topline(false, true)}
+      <div class="center-col">
+        <div class="staff-grid">
+          <div class="panel">
+            <h3>Queue control</h3>
+            <div class="stat-row">
+              <div class="stat">
+                <div class="num">${String(state.nowServing).padStart(3,'0')}</div>
+                <div class="lbl">Now serving</div>
+              </div>
+              <div class="stat">
+                <div class="num">${String(state.lastIssued).padStart(3,'0')}</div>
+                <div class="lbl">Last issued</div>
+              </div>
+              <div class="stat">
+                <div class="num">${waiting}</div>
+                <div class="lbl">Waiting</div>
+              </div>
+            </div>
+            <button class="primary-btn call-next-btn" id="call-next-btn" ${waiting<=0 ? 'disabled' : ''}>Call next number</button>
+            <div class="btn-row">
+              <button class="ghost-btn" id="recall-btn">Recall current number</button>
+            </div>
+            <div class="danger-zone">
+              <p>Starting a new event? This clears all numbers back to zero.</p>
+              <button class="rust-btn" id="reset-btn">Reset queue</button>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>Event name</h3>
+            <p style="font-size:13px;color:#8a8d9e;margin:6px 0 14px;">Shown on the register and display screens.</p>
+            <label class="field-label" for="title-input">Event title</label>
+            <input class="text-input" id="title-input" value="${escapeHtml(state.title)}" maxlength="60">
+            <div class="save-row">
+              <button class="ghost-btn" id="save-title-btn" style="flex:1;">Save name</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('call-next-btn').onclick = async ()=>{
+      try{
+        state = await api.callNext();
+        showToast('Now serving ' + String(state.nowServing).padStart(3,'0'));
+        renderStaff();
+      }catch(e){ showToast("Couldn't reach the server."); }
+    };
+    document.getElementById('recall-btn').onclick = async ()=>{
+      try{
+        state = await api.recall();
+        showToast('Recalled number ' + String(state.nowServing).padStart(3,'0'));
+      }catch(e){ showToast("Couldn't reach the server."); }
+    };
+    document.getElementById('reset-btn').onclick = async ()=>{
+      if(!confirm('Reset the queue back to zero? This cannot be undone.')) return;
+      try{
+        state = await api.reset();
+        showToast('Queue reset');
+        renderStaff();
+      }catch(e){ showToast("Couldn't reach the server."); }
+    };
+    document.getElementById('save-title-btn').onclick = async ()=>{
+      const val = document.getElementById('title-input').value.trim();
+      if(!val) return;
+      try{
+        state = await api.setTitle(val);
+        showToast('Event name saved');
+        renderStaff();
+      }catch(e){ showToast("Couldn't reach the server."); }
+    };
+
+    startPolling(renderStaff);
+  }
+
+  function render(){
+    if(view === 'landing') renderLanding();
+    else if(view === 'register') renderRegisterIntro();
+    else if(view === 'display') renderDisplay();
+    else if(view === 'staff') renderStaff();
+  }
+
+  window.__app = { goto };
+
+  (async function init(){
+    try{
+      state = await api.getState();
+    }catch(e){ /* fall back to default state shown above; will retry on next poll */ }
+    render();
+  })();
+})();
+</script>
+</body>
+</html>
