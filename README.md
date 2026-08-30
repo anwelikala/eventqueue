@@ -1,9 +1,10 @@
 # Queue Ticket System (self-hosted)
 
-A small take-a-number system for events: visitors register and get a number,
-a display board shows who's being helped now, and a staff screen calls the
-next number. All three stay in sync through a tiny server — no third-party
-accounts needed.
+A take-a-number system for events: visitors register with their name, phone
+number, and what they need help with; a display board shows who's being
+helped now; a password-protected call desk calls the next number; and a
+password-protected admin page shows the full visitor list, renames the
+event, and resets the queue.
 
 ## Run it locally
 
@@ -14,18 +15,41 @@ npm install
 npm start
 ```
 
-Then open **http://localhost:3000** in a browser. Pick "Get my number",
-"Show queue board", or "Staff control" from the home screen.
+Open **http://localhost:3000**. From the home screen:
+- **Get my number** — visitors fill in name, phone, and what they need help with.
+- **Show queue board** — put this on the screen everyone can see.
+- **Call desk** — password-protected. Calls and recalls numbers.
+- **Admin** — password-protected. Visitor list, event name, reset.
 
-Queue numbers are saved to `state.json` in this folder, so they survive a
-server restart. Delete that file (or use the "Reset queue" button in Staff
-control) to start over.
+Default passwords (change these before your event — see below):
+- Call desk: `call1234`
+- Admin: `admin1234`
+
+Queue and visitor data is saved to `state.json` in this folder, so it
+survives a restart. The admin "Reset queue" button clears both the numbers
+and the visitor list.
+
+## Changing the passwords
+
+The easiest way is with environment variables — set these on whatever
+machine or host runs the app:
+
+```bash
+CALL_PASSWORD=yourcallpassword ADMIN_PASSWORD=youradminpassword npm start
+```
+
+On a host like Render, set `CALL_PASSWORD` and `ADMIN_PASSWORD` in the
+service's Environment tab — no code changes or redeploy needed.
+
+If you don't set them, the app falls back to the defaults above, which
+means anyone who's used this README could log in — change them before a
+real event.
 
 ## Using it at the event
 
 You need the server running on one machine, and every device (visitor
-phones, the display screen, the staff laptop) needs to be able to reach it
-over the network.
+phones, the display screen, the call desk, admin) needs to be able to
+reach it over the network.
 
 **Simplest: same Wi-Fi network**
 1. Run `npm start` on a laptop connected to the venue's Wi-Fi.
@@ -33,34 +57,28 @@ over the network.
    run `ipconfig getifaddr en0` or `hostname -I`; on Windows run `ipconfig`
    and look for "IPv4 Address".
 3. On other devices (same Wi-Fi), open `http://192.168.1.42:3000`.
-4. Optional: turn that URL into a QR code (any free QR generator) so
-   visitors can scan it to register instead of typing it in.
+4. Optional: turn that URL into a QR code so visitors can scan it to
+   register instead of typing it in.
 
-This works well for a single-venue event and needs nothing beyond the
-laptop you're already using.
-
-**More permanent: deploy it to a hosting provider**
-If you want a stable public URL (e.g. for a recurring event, or so it's
-reachable outside the venue's Wi-Fi), deploy this folder to any Node.js
-host. A few free/cheap options that work with zero config changes:
-
-- **Render** (render.com) — "New Web Service", connect this folder/repo,
-  build command `npm install`, start command `npm start`.
-- **Railway** (railway.app) — similar one-click deploy from a repo.
-- **Fly.io** or any VPS — run `npm install && npm start` behind a process
-  manager like `pm2`, and put it behind a reverse proxy (e.g. Caddy or
-  nginx) for HTTPS and a custom domain.
-
-Whichever you choose, the app doesn't need a database or any environment
-variables — it just needs Node.js and a writable folder for `state.json`.
+**More permanent: deploy to a hosting provider**
+Render's free tier works well for this (see the earlier setup steps in
+your conversation, or render.com's docs) — deploy this folder, set
+`CALL_PASSWORD` and `ADMIN_PASSWORD` as environment variables in Render's
+dashboard, and share the resulting URL.
 
 ## Notes
 
-- There's no login on the staff screen — anyone with the URL plus
-  `/staff` knowledge can control the queue. For a single-event kiosk this
-  is usually fine; if you want to lock it down, the easiest option is
-  putting the whole site behind your hosting provider's basic-auth feature,
-  or asking to have a password added to the staff screen.
-- If two people tap "Get my number" at the exact same instant, the server
-  processes requests one at a time, so there's no risk of two visitors
-  getting the same number.
+- Visitor names, phone numbers, and service needs are only ever shown on
+  the admin page — the public register and display screens never expose
+  them.
+- Passwords are checked on every request; there's no session timeout, so
+  once a device is logged into the call desk or admin page it stays
+  logged in until the browser tab is closed (this uses `sessionStorage`,
+  not a permanent cookie).
+- This is a simple shared-password model, not individual staff accounts —
+  fine for a single trusted event team. If you need to know *which* staff
+  member called a number, or want separate logins per person, that's a
+  bigger change — let me know if you'd like that added.
+- If two visitors submit the registration form at the exact same instant,
+  the server processes requests one at a time, so there's no risk of two
+  people getting the same number.

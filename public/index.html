@@ -40,9 +40,7 @@
     padding:18px 24px;
     border-bottom:1px solid var(--line);
   }
-  .brand{
-    display:flex;align-items:baseline;gap:10px;
-  }
+  .brand{display:flex;align-items:baseline;gap:10px;}
   .brand .mark{
     font-family:var(--font-display);font-weight:700;
     background:var(--ink);color:var(--board-digit);
@@ -82,27 +80,45 @@
 
   /* ---------- landing ---------- */
   .role-grid{
-    display:grid;grid-template-columns:repeat(3,1fr);gap:18px;
-    max-width:920px;width:100%;margin-top:28px;
+    display:grid;grid-template-columns:repeat(4,1fr);gap:18px;
+    max-width:1080px;width:100%;margin-top:28px;
   }
-  @media (max-width:820px){ .role-grid{grid-template-columns:1fr; max-width:420px;} }
+  @media (max-width:980px){ .role-grid{grid-template-columns:repeat(2,1fr); max-width:640px;} }
+  @media (max-width:520px){ .role-grid{grid-template-columns:1fr; max-width:420px;} }
   .role-card{
     background:#fff;border:1px solid var(--line);border-radius:18px;
-    padding:28px 22px;text-align:left;cursor:pointer;
+    padding:26px 20px;text-align:left;cursor:pointer;
     box-shadow:var(--shadow);
     transition:transform .15s ease;
   }
   .role-card:hover{transform:translateY(-4px);}
   .role-card .icon{
-    width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;
-    font-family:var(--font-display);font-weight:700;font-size:18px;color:#fff;margin-bottom:16px;
+    width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:700;font-size:17px;color:#fff;margin-bottom:14px;
   }
-  .role-card h3{margin:0 0 8px;font-size:18px;}
-  .role-card p{margin:0;font-size:14px;color:#5b5f73;line-height:1.5;}
+  .role-card h3{margin:0 0 6px;font-size:16px;}
+  .role-card p{margin:0;font-size:13px;color:#5b5f73;line-height:1.5;}
   .landing-title{font-size:clamp(28px,4vw,40px);font-weight:800;margin:0 0 6px;text-align:center;}
   .landing-sub{color:#5b5f73;font-size:15px;margin:0;text-align:center;max-width:520px;}
 
-  /* ---------- register / ticket ---------- */
+  /* ---------- forms (register + password gates) ---------- */
+  .form-card{
+    background:#fff;border-radius:18px;padding:40px 34px;text-align:left;
+    box-shadow:var(--shadow);max-width:420px;width:100%;
+  }
+  .form-card h2{margin:0 0 8px;font-size:22px;text-align:center;}
+  .form-card > p.intro{margin:0 0 24px;color:#5b5f73;font-size:14px;line-height:1.55;text-align:center;}
+  label.field-label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a8d9e;margin-bottom:8px;}
+  .field-group{margin-bottom:18px;}
+  input.text-input, select.text-input{
+    width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);
+    font-size:15px;font-family:var(--font-body);background:#fff;
+  }
+  input.text-input:focus, select.text-input:focus{outline:2px solid var(--amber);outline-offset:1px;border-color:var(--amber);}
+  .field-error{color:var(--rust);font-size:13px;margin:-10px 0 16px;display:none;}
+  .field-error.show{display:block;}
+
+  /* ---------- ticket ---------- */
   .ticket-wrap{width:100%;max-width:380px;}
   .ticket{
     position:relative;background:#fff;border-radius:4px;
@@ -116,15 +132,11 @@
   }
   .ticket::before{left:-12px;}
   .ticket::after{right:-12px;}
-  .ticket .perf{
-    position:absolute;left:14px;right:14px;top:0;height:0;
-    border-top:2px dashed var(--line);
-  }
+  .ticket .perf{position:absolute;left:14px;right:14px;top:0;height:0;border-top:2px dashed var(--line);}
   .ticket-eyebrow{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--amber-deep);font-weight:700;margin-bottom:14px;}
   .ticket-number{
     font-family:var(--font-display);font-weight:700;font-size:88px;line-height:1;
-    color:var(--ink);margin:6px 0 10px;
-    letter-spacing:2px;
+    color:var(--ink);margin:6px 0 10px;letter-spacing:2px;
   }
   .ticket-hint{font-size:14px;color:#5b5f73;margin:0 0 18px;line-height:1.5;}
   .ticket-divider{border-top:2px dashed var(--line);margin:18px 0;}
@@ -133,12 +145,6 @@
     display:inline-block;margin-top:16px;background:var(--paper-dark);
     padding:8px 16px;border-radius:100px;font-size:13px;font-weight:700;color:var(--ink-soft);
   }
-  .get-number-card{
-    background:#fff;border-radius:18px;padding:48px 34px;text-align:center;
-    box-shadow:var(--shadow);max-width:420px;width:100%;
-  }
-  .get-number-card h2{margin:0 0 10px;font-size:24px;}
-  .get-number-card p{margin:0 0 26px;color:#5b5f73;font-size:15px;line-height:1.55;}
   .new-ticket-link{
     display:block;margin-top:22px;background:none;border:none;color:var(--ink-soft);
     font-size:14px;text-decoration:underline;cursor:pointer;font-family:var(--font-body);
@@ -155,8 +161,7 @@
   .serving-label{font-size:clamp(16px,2.6vw,22px);letter-spacing:6px;text-transform:uppercase;color:var(--amber);font-weight:700;}
   .serving-number{
     font-family:var(--font-display);font-weight:700;
-    font-size:clamp(120px,26vw,300px);line-height:1;
-    color:var(--board-digit);
+    font-size:clamp(120px,26vw,300px);line-height:1;color:var(--board-digit);
   }
   .serving-number.pulse{animation:pulse 900ms ease;}
   @media (prefers-reduced-motion: reduce){ .serving-number.pulse{animation:none;} }
@@ -168,12 +173,12 @@
   .board-sub{font-size:15px;color:rgba(247,244,236,0.6);}
   .board-footer{text-align:center;padding:18px;font-size:12px;color:rgba(247,244,236,0.4);letter-spacing:1px;text-transform:uppercase;}
 
-  /* ---------- staff ---------- */
-  .staff-grid{
+  /* ---------- call desk + admin panels ---------- */
+  .panel-grid{
     display:grid;grid-template-columns:1.1fr 0.9fr;gap:22px;
     max-width:880px;width:100%;
   }
-  @media (max-width:760px){ .staff-grid{grid-template-columns:1fr;} }
+  @media (max-width:760px){ .panel-grid{grid-template-columns:1fr;} }
   .panel{background:#fff;border-radius:18px;padding:28px;box-shadow:var(--shadow);}
   .panel h3{margin:0 0 4px;font-size:14px;text-transform:uppercase;letter-spacing:1.5px;color:#8a8d9e;}
   .stat-row{display:flex;gap:16px;margin-top:18px;}
@@ -183,15 +188,25 @@
   .call-next-btn{width:100%;margin-top:22px;padding:22px;font-size:20px;border-radius:16px;}
   .btn-row{display:flex;gap:10px;margin-top:12px;}
   .btn-row .ghost-btn{flex:1;}
-  label.field-label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a8d9e;margin-bottom:8px;}
-  input.text-input{
-    width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);
-    font-size:15px;font-family:var(--font-body);
-  }
-  input.text-input:focus{outline:2px solid var(--amber);outline-offset:1px;border-color:var(--amber);}
   .save-row{display:flex;gap:10px;margin-top:12px;}
   .danger-zone{margin-top:26px;padding-top:20px;border-top:1px solid var(--line);}
   .danger-zone p{font-size:13px;color:#8a8d9e;margin:0 0 12px;}
+  .wide-panel{max-width:1080px;width:100%;}
+
+  /* ---------- visitor table ---------- */
+  .table-scroll{overflow-x:auto;margin-top:18px;}
+  table.visitor-table{width:100%;border-collapse:collapse;font-size:14px;min-width:560px;}
+  table.visitor-table th{
+    text-align:left;padding:10px 10px;font-size:11px;text-transform:uppercase;
+    letter-spacing:0.5px;color:#8a8d9e;border-bottom:1.5px solid var(--line);
+  }
+  table.visitor-table td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  table.visitor-table tr:last-child td{border-bottom:none;}
+  .status-pill{display:inline-block;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;}
+  .status-pill.waiting{background:var(--paper-dark);color:var(--ink-soft);}
+  .status-pill.called{background:#DCEEE8;color:var(--teal);}
+  .empty-note{color:#8a8d9e;font-size:14px;margin-top:18px;text-align:center;}
+
   .toast{
     position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
     background:var(--ink);color:var(--board-digit);padding:12px 22px;border-radius:100px;
@@ -215,7 +230,7 @@
 <script>
 (function(){
   let state = { title: 'Queue', lastIssued: 0, nowServing: 0, updatedAt: 0 };
-  let view = 'landing'; // landing | register | display | staff
+  let view = 'landing';
   let myTicket = null;
   let pollTimer = null;
   let lastServingSeen = null;
@@ -230,57 +245,105 @@
     clearTimeout(showToast._t);
     showToast._t = setTimeout(()=> toastEl.classList.remove('show'), 2200);
   }
-
   function setOffline(isOffline){
     offlineBanner.classList.toggle('show', isOffline);
+  }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function fmtTime(ts){
+    if(!ts) return '—';
+    const d = new Date(ts);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
   async function apiCall(path, opts){
     try{
       const res = await fetch(path, opts);
-      if(!res.ok) throw new Error('Bad response: ' + res.status);
       setOffline(false);
-      return await res.json();
+      return res;
     }catch(err){
-      console.error('API error on', path, err);
+      console.error('Network error on', path, err);
       setOffline(true);
       throw err;
     }
   }
 
   const api = {
-    getState: () => apiCall('/api/state'),
-    register: () => apiCall('/api/register', { method:'POST' }),
-    callNext: () => apiCall('/api/call-next', { method:'POST' }),
-    recall: () => apiCall('/api/recall', { method:'POST' }),
-    reset: () => apiCall('/api/reset', { method:'POST' }),
-    setTitle: (title) => apiCall('/api/title', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ title })
-    })
+    getState: async () => (await apiCall('/api/state')).json(),
+    register: async (payload) => (await apiCall('/api/register', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    })).json(),
+
+    callLogin: async (password) => (await apiCall('/api/call/login', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password })
+    })).json(),
+    callState: async () => {
+      const res = await apiCall('/api/call/state', { headers: authHeaders('call') });
+      if(res.status === 401){ handleAuthFailure('call'); throw new Error('unauthorized'); }
+      return res.json();
+    },
+    callNext: async () => {
+      const res = await apiCall('/api/call/next', { method:'POST', headers: authHeaders('call') });
+      if(res.status === 401){ handleAuthFailure('call'); throw new Error('unauthorized'); }
+      return res.json();
+    },
+    callRecall: async () => {
+      const res = await apiCall('/api/call/recall', { method:'POST', headers: authHeaders('call') });
+      if(res.status === 401){ handleAuthFailure('call'); throw new Error('unauthorized'); }
+      return res.json();
+    },
+
+    adminLogin: async (password) => (await apiCall('/api/admin/login', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password })
+    })).json(),
+    adminVisitors: async () => {
+      const res = await apiCall('/api/admin/visitors', { headers: authHeaders('admin') });
+      if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
+      return res.json();
+    },
+    adminSetTitle: async (title) => {
+      const res = await apiCall('/api/admin/title', {
+        method:'POST',
+        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
+        body: JSON.stringify({ title })
+      });
+      if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
+      return res.json();
+    },
+    adminReset: async () => {
+      const res = await apiCall('/api/admin/reset', { method:'POST', headers: authHeaders('admin') });
+      if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
+      return res.json();
+    }
   };
+
+  function authHeaders(kind){
+    const pw = sessionStorage.getItem(kind + 'Password') || '';
+    return { 'x-app-password': pw };
+  }
+  function handleAuthFailure(kind){
+    sessionStorage.removeItem(kind + 'Password');
+    showToast('Password no longer valid — please log in again.');
+    goto(kind === 'call' ? 'call-login' : 'admin-login');
+  }
 
   function startPolling(renderFn){
     stopPolling();
     pollTimer = setInterval(async ()=>{
-      try{
-        state = await api.getState();
-        renderFn();
-      }catch(e){ /* offline banner already shown */ }
+      try{ await renderFn(true); }catch(e){ /* handled inside */ }
     }, 2500);
   }
   function stopPolling(){
     if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
   }
-
   function goto(v){
     stopPolling();
     view = v;
     render();
   }
 
-  function topline(dark, homeVisible){
+  function topline(homeVisible){
     return `
       <div class="topline">
         <div class="brand">
@@ -292,14 +355,10 @@
     `;
   }
 
-  function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
-
   /* ---------------- LANDING ---------------- */
   function renderLanding(){
     app.innerHTML = `
-      ${topline(false, false)}
+      ${topline(false)}
       <div class="center-col">
         <h1 class="landing-title">Welcome</h1>
         <p class="landing-sub">Choose what you're here to do at <strong>${escapeHtml(state.title)}</strong>.</p>
@@ -307,17 +366,22 @@
           <div class="role-card" onclick="__app.goto('register')">
             <div class="icon" style="background:var(--amber);">#</div>
             <h3>Get my number</h3>
-            <p>Visitors register here and receive a ticket number. You'll be helped in order.</p>
+            <p>Visitors register here and receive a ticket number.</p>
           </div>
           <div class="role-card" onclick="__app.goto('display')">
             <div class="icon" style="background:var(--ink);">▤</div>
             <h3>Show queue board</h3>
-            <p>Put this on the screen everyone can see. It shows which number is being helped now.</p>
+            <p>Put this on the screen everyone can see.</p>
           </div>
-          <div class="role-card" onclick="__app.goto('staff')">
-            <div class="icon" style="background:var(--teal);">✓</div>
-            <h3>Staff control</h3>
-            <p>Call the next number, check how many are waiting, and reset the queue.</p>
+          <div class="role-card" onclick="__app.goto(sessionStorage.getItem('callPassword') ? 'call-desk' : 'call-login')">
+            <div class="icon" style="background:var(--teal);">☎</div>
+            <h3>Call desk</h3>
+            <p>Call the next number. Password required.</p>
+          </div>
+          <div class="role-card" onclick="__app.goto(sessionStorage.getItem('adminPassword') ? 'admin-panel' : 'admin-login')">
+            <div class="icon" style="background:var(--rust);">⚙</div>
+            <h3>Admin</h3>
+            <p>Visitor list, event name, reset. Password required.</p>
           </div>
         </div>
       </div>
@@ -325,36 +389,59 @@
   }
 
   /* ---------------- REGISTER ---------------- */
-  function renderRegisterIntro(){
+  function renderRegister(){
     app.innerHTML = `
-      ${topline(false, true)}
+      ${topline(true)}
       <div class="center-col">
-        <div class="get-number-card">
+        <div class="form-card">
           <h2>Get your number</h2>
-          <p>Tap the button below. You'll get a number and we'll help you in that order — no need to stay in a physical line.</p>
-          <button class="primary-btn" id="pull-ticket-btn" style="width:100%;">Get my number</button>
+          <p class="intro">Fill this in and we'll help you in order — no need to stay in a physical line.</p>
+          <form id="register-form">
+            <div class="field-group">
+              <label class="field-label" for="f-name">Name</label>
+              <input class="text-input" id="f-name" type="text" required maxlength="80" autocomplete="name">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="f-phone">Phone number</label>
+              <input class="text-input" id="f-phone" type="tel" required maxlength="40" autocomplete="tel">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="f-service">What do you need help with?</label>
+              <input class="text-input" id="f-service" type="text" required maxlength="120" placeholder="e.g. Housing application">
+            </div>
+            <div class="field-error" id="form-error">Please fill in all fields.</div>
+            <button class="primary-btn" type="submit" style="width:100%;">Get my number</button>
+          </form>
         </div>
       </div>
     `;
-    document.getElementById('pull-ticket-btn').onclick = pullTicket;
-  }
-
-  async function pullTicket(){
-    try{
-      const result = await api.register();
-      myTicket = result.number;
-      state = result.state;
-      renderTicket();
-      startPolling(renderTicket);
-    }catch(e){
-      showToast("Couldn't reach the server — try again.");
-    }
+    document.getElementById('register-form').onsubmit = async (e)=>{
+      e.preventDefault();
+      const name = document.getElementById('f-name').value.trim();
+      const phone = document.getElementById('f-phone').value.trim();
+      const service = document.getElementById('f-service').value.trim();
+      const errEl = document.getElementById('form-error');
+      if(!name || !phone || !service){
+        errEl.classList.add('show');
+        return;
+      }
+      errEl.classList.remove('show');
+      try{
+        const result = await api.register({ name, phone, service });
+        myTicket = result.number;
+        state = result.state;
+        renderTicket();
+        startPolling(async ()=>{ state = await api.getState(); updateTicketAheadCount(); });
+      }catch(err){
+        showToast("Couldn't reach the server — try again.");
+      }
+    };
   }
 
   function renderTicket(){
     const ahead = Math.max(0, myTicket - state.nowServing - 1);
     app.innerHTML = `
-      ${topline(false, true)}
+      ${topline(true)}
       <div class="center-col">
         <div class="ticket-wrap">
           <div class="ticket">
@@ -364,77 +451,164 @@
             <p class="ticket-hint">Watch the queue screen or wait for your number to be called.</p>
             <div class="ticket-divider"></div>
             <div class="ticket-meta">
-              <span>Now serving ${String(state.nowServing).padStart(3,'0')}</span>
+              <span id="ticket-now-serving">Now serving ${String(state.nowServing).padStart(3,'0')}</span>
               <span>${escapeHtml(state.title)}</span>
             </div>
           </div>
           <div style="text-align:center;">
-            <div class="ahead-pill">${ahead === 0 ? "You're next" : ahead + ' number' + (ahead===1?'':'s') + ' ahead of you'}</div>
+            <div class="ahead-pill" id="ahead-pill">${ahead === 0 ? "You're next" : ahead + ' number' + (ahead===1?'':'s') + ' ahead of you'}</div>
           </div>
           <button class="new-ticket-link" onclick="__app.goto('register')">Get a different number</button>
         </div>
       </div>
     `;
   }
+  function updateTicketAheadCount(){
+    if(view !== 'register' && myTicket === null) return;
+    const pillEl = document.getElementById('ahead-pill');
+    const nowEl = document.getElementById('ticket-now-serving');
+    if(!pillEl || !nowEl) return;
+    const ahead = Math.max(0, myTicket - state.nowServing - 1);
+    nowEl.textContent = 'Now serving ' + String(state.nowServing).padStart(3,'0');
+    pillEl.textContent = ahead === 0 ? "You're next" : ahead + ' number' + (ahead===1?'':'s') + ' ahead of you';
+  }
 
   /* ---------------- DISPLAY ---------------- */
   function renderDisplay(){
     app.innerHTML = `
       <div class="board-view">
-        ${topline(true, true)}
+        ${topline(true)}
         <div class="board-center">
           <div class="serving-label">Now serving</div>
           <div class="serving-number" id="serving-num">${String(state.nowServing).padStart(3,'0')}</div>
-          <div class="board-sub">${state.lastIssued > state.nowServing ? (state.lastIssued - state.nowServing) + ' waiting' : 'No one waiting'}</div>
+          <div class="board-sub" id="board-sub">${state.lastIssued > state.nowServing ? (state.lastIssued - state.nowServing) + ' waiting' : 'No one waiting'}</div>
         </div>
         <div class="board-footer">${escapeHtml(state.title)}</div>
       </div>
     `;
     lastServingSeen = state.nowServing;
-    startPolling(()=>{
+    startPolling(async ()=>{
+      state = await api.getState();
       const numEl = document.getElementById('serving-num');
-      if(!numEl){ renderDisplay(); return; }
+      const subEl = document.getElementById('board-sub');
+      if(!numEl) return;
       if(state.nowServing !== lastServingSeen){
         lastServingSeen = state.nowServing;
         numEl.textContent = String(state.nowServing).padStart(3,'0');
         numEl.classList.remove('pulse');
         void numEl.offsetWidth;
         numEl.classList.add('pulse');
-        const subEl = numEl.parentElement.querySelector('.board-sub');
-        if(subEl){ subEl.textContent = state.lastIssued > state.nowServing ? (state.lastIssued - state.nowServing) + ' waiting' : 'No one waiting'; }
       }
+      if(subEl){ subEl.textContent = state.lastIssued > state.nowServing ? (state.lastIssued - state.nowServing) + ' waiting' : 'No one waiting'; }
     });
   }
 
-  /* ---------------- STAFF ---------------- */
-  function renderStaff(){
+  /* ---------------- PASSWORD GATES ---------------- */
+  function renderPasswordGate(kind, onSuccessView, heading, blurb){
+    app.innerHTML = `
+      ${topline(true)}
+      <div class="center-col">
+        <div class="form-card">
+          <h2>${heading}</h2>
+          <p class="intro">${blurb}</p>
+          <form id="pw-form">
+            <div class="field-group">
+              <label class="field-label" for="pw-input">Password</label>
+              <input class="text-input" id="pw-input" type="password" required autofocus>
+            </div>
+            <div class="field-error" id="pw-error">Wrong password.</div>
+            <button class="primary-btn" type="submit" style="width:100%;">Enter</button>
+          </form>
+        </div>
+      </div>
+    `;
+    document.getElementById('pw-form').onsubmit = async (e)=>{
+      e.preventDefault();
+      const val = document.getElementById('pw-input').value;
+      const errEl = document.getElementById('pw-error');
+      try{
+        const loginFn = kind === 'call' ? api.callLogin : api.adminLogin;
+        const result = await loginFn(val);
+        if(result.ok){
+          sessionStorage.setItem(kind + 'Password', val);
+          goto(onSuccessView);
+        }else{
+          errEl.classList.add('show');
+        }
+      }catch(err){
+        showToast("Couldn't reach the server — try again.");
+      }
+    };
+  }
+  function renderCallLogin(){ renderPasswordGate('call', 'call-desk', 'Call desk', 'Enter the call desk password to call and recall numbers.'); }
+  function renderAdminLogin(){ renderPasswordGate('admin', 'admin-panel', 'Admin', 'Enter the admin password to manage the queue and view visitor details.'); }
+
+  /* ---------------- CALL DESK ---------------- */
+  function renderCallDesk(){
     const waiting = Math.max(0, state.lastIssued - state.nowServing);
     app.innerHTML = `
-      ${topline(false, true)}
+      ${topline(true)}
       <div class="center-col">
-        <div class="staff-grid">
-          <div class="panel">
-            <h3>Queue control</h3>
-            <div class="stat-row">
-              <div class="stat">
-                <div class="num">${String(state.nowServing).padStart(3,'0')}</div>
-                <div class="lbl">Now serving</div>
-              </div>
-              <div class="stat">
-                <div class="num">${String(state.lastIssued).padStart(3,'0')}</div>
-                <div class="lbl">Last issued</div>
-              </div>
-              <div class="stat">
-                <div class="num">${waiting}</div>
-                <div class="lbl">Waiting</div>
-              </div>
+        <div class="panel" style="max-width:460px;width:100%;">
+          <h3>Call desk</h3>
+          <div class="stat-row">
+            <div class="stat">
+              <div class="num" id="cd-serving">${String(state.nowServing).padStart(3,'0')}</div>
+              <div class="lbl">Now serving</div>
             </div>
-            <button class="primary-btn call-next-btn" id="call-next-btn" ${waiting<=0 ? 'disabled' : ''}>Call next number</button>
-            <div class="btn-row">
-              <button class="ghost-btn" id="recall-btn">Recall current number</button>
+            <div class="stat">
+              <div class="num" id="cd-waiting">${waiting}</div>
+              <div class="lbl">Waiting</div>
+            </div>
+          </div>
+          <button class="primary-btn call-next-btn" id="call-next-btn" ${waiting<=0 ? 'disabled' : ''}>Call next number</button>
+          <div class="btn-row">
+            <button class="ghost-btn" id="recall-btn">Recall current number</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.getElementById('call-next-btn').onclick = async ()=>{
+      try{
+        state = await api.callNext();
+        showToast('Now serving ' + String(state.nowServing).padStart(3,'0'));
+        renderCallDesk();
+      }catch(e){ /* handled by auth/offline handlers */ }
+    };
+    document.getElementById('recall-btn').onclick = async ()=>{
+      try{
+        state = await api.callRecall();
+        showToast('Recalled number ' + String(state.nowServing).padStart(3,'0'));
+      }catch(e){ /* handled */ }
+    };
+    startPolling(async ()=>{
+      try{
+        state = await api.callState();
+        const waitingNow = Math.max(0, state.lastIssued - state.nowServing);
+        const servingEl = document.getElementById('cd-serving');
+        const waitingEl = document.getElementById('cd-waiting');
+        const btn = document.getElementById('call-next-btn');
+        if(servingEl) servingEl.textContent = String(state.nowServing).padStart(3,'0');
+        if(waitingEl) waitingEl.textContent = waitingNow;
+        if(btn) btn.disabled = waitingNow <= 0;
+      }catch(e){ /* handled */ }
+    });
+  }
+
+  /* ---------------- ADMIN ---------------- */
+  function renderAdminPanel(){
+    app.innerHTML = `
+      ${topline(true)}
+      <div class="center-col">
+        <div class="panel-grid" style="margin-bottom:20px;">
+          <div class="panel">
+            <h3>Queue overview</h3>
+            <div class="stat-row" id="admin-stats">
+              <div class="stat"><div class="num">${String(state.nowServing).padStart(3,'0')}</div><div class="lbl">Now serving</div></div>
+              <div class="stat"><div class="num">${String(state.lastIssued).padStart(3,'0')}</div><div class="lbl">Last issued</div></div>
             </div>
             <div class="danger-zone">
-              <p>Starting a new event? This clears all numbers back to zero.</p>
+              <p>Starting a new event? This clears all numbers and visitor details.</p>
               <button class="rust-btn" id="reset-btn">Reset queue</button>
             </div>
           </div>
@@ -448,56 +622,84 @@
             </div>
           </div>
         </div>
+        <div class="panel wide-panel">
+          <h3>Visitors</h3>
+          <div id="visitor-table-wrap"></div>
+        </div>
       </div>
     `;
 
-    document.getElementById('call-next-btn').onclick = async ()=>{
-      try{
-        state = await api.callNext();
-        showToast('Now serving ' + String(state.nowServing).padStart(3,'0'));
-        renderStaff();
-      }catch(e){ showToast("Couldn't reach the server."); }
-    };
-    document.getElementById('recall-btn').onclick = async ()=>{
-      try{
-        state = await api.recall();
-        showToast('Recalled number ' + String(state.nowServing).padStart(3,'0'));
-      }catch(e){ showToast("Couldn't reach the server."); }
-    };
     document.getElementById('reset-btn').onclick = async ()=>{
-      if(!confirm('Reset the queue back to zero? This cannot be undone.')) return;
+      if(!confirm('Reset the queue and clear all visitor details? This cannot be undone.')) return;
       try{
-        state = await api.reset();
+        state = await api.adminReset();
         showToast('Queue reset');
-        renderStaff();
-      }catch(e){ showToast("Couldn't reach the server."); }
+        loadVisitors();
+        renderAdminPanel();
+      }catch(e){ /* handled */ }
     };
     document.getElementById('save-title-btn').onclick = async ()=>{
       const val = document.getElementById('title-input').value.trim();
       if(!val) return;
       try{
-        state = await api.setTitle(val);
+        state = await api.adminSetTitle(val);
         showToast('Event name saved');
-        renderStaff();
-      }catch(e){ showToast("Couldn't reach the server."); }
+      }catch(e){ /* handled */ }
     };
 
-    startPolling(renderStaff);
+    async function loadVisitors(){
+      try{
+        const data = await api.adminVisitors();
+        renderVisitorTable(data.visitors);
+      }catch(e){ /* handled */ }
+    }
+    function renderVisitorTable(visitors){
+      const wrap = document.getElementById('visitor-table-wrap');
+      if(!wrap) return;
+      if(!visitors || visitors.length === 0){
+        wrap.innerHTML = `<p class="empty-note">No one has registered yet.</p>`;
+        return;
+      }
+      const rows = visitors.slice().reverse().map(v => `
+        <tr>
+          <td>${String(v.number).padStart(3,'0')}</td>
+          <td>${escapeHtml(v.name || '—')}</td>
+          <td>${escapeHtml(v.phone || '—')}</td>
+          <td>${escapeHtml(v.service || '—')}</td>
+          <td>${fmtTime(v.registeredAt)}</td>
+          <td><span class="status-pill ${v.calledAt ? 'called' : 'waiting'}">${v.calledAt ? 'Called' : 'Waiting'}</span></td>
+        </tr>
+      `).join('');
+      wrap.innerHTML = `
+        <div class="table-scroll">
+          <table class="visitor-table">
+            <thead>
+              <tr><th>#</th><th>Name</th><th>Phone</th><th>Needs help with</th><th>Registered</th><th>Status</th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    loadVisitors();
+    startPolling(loadVisitors);
   }
 
   function render(){
     if(view === 'landing') renderLanding();
-    else if(view === 'register') renderRegisterIntro();
+    else if(view === 'register') renderRegister();
     else if(view === 'display') renderDisplay();
-    else if(view === 'staff') renderStaff();
+    else if(view === 'call-login') renderCallLogin();
+    else if(view === 'call-desk') renderCallDesk();
+    else if(view === 'admin-login') renderAdminLogin();
+    else if(view === 'admin-panel') renderAdminPanel();
   }
 
   window.__app = { goto };
 
   (async function init(){
-    try{
-      state = await api.getState();
-    }catch(e){ /* fall back to default state shown above; will retry on next poll */ }
+    try{ state = await api.getState(); }catch(e){ /* fall back to defaults, retried on poll */ }
     render();
   })();
 })();
