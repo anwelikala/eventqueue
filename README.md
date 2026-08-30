@@ -5,7 +5,7 @@ phone number, and what they need help with (picked from a dropdown, or
 "Other" to type their own); a display board shows who's being helped now;
 a password-protected call desk calls the next number; and a
 password-protected admin page shows the full visitor list, edits the
-event title, welcome message, and service list, downloads a CSV backup,
+event title, welcome message, and service list, downloads/uploads a CSV,
 and resets the queue.
 
 ## Run it locally
@@ -24,27 +24,35 @@ bottom of the home screen, which opens a separate page listing:
 - **Show queue board** — put this on the screen everyone can see.
 - **Call desk** — password-protected. Calls and recalls numbers.
 - **Admin** — password-protected. Visitor list, event title, welcome
-  message, services list, CSV download, and reset.
+  message, services list, CSV download/upload, and reset.
 
 Default passwords (change these before your event — see below):
 - Call desk: `call1234`
 - Admin: `admin1234`
+
+## Phone number validation
+
+The registration form requires a plausible phone number: digits, spaces,
+`+`, `-`, and `()` are allowed (so international formats like
+`+46 70 123 45 67` work fine), with at least 7 and at most 15 digits.
+Letters or too few/too many digits are rejected with an inline message.
+This is checked both in the browser and on the server, so it holds even
+if someone calls the API directly rather than using the form.
 
 ## How visitor data is stored
 
 Every registration is saved in two places:
 
 1. **`state.json`** — the live working data the app reads from. Rewritten
-   after every change (registration, call, reset). This is what powers
-   the admin page and the "Download CSV" button.
+   after every change (registration, call, reset, import). This is what
+   powers the admin page.
 2. **`visitors.csv`** — a plain-text, append-only log. Every registration
    adds one line to this file and nothing already written is ever
    rewritten, which makes it more crash-resistant than `state.json`: even
    if the app crashes mid-write, only the newest line is at risk, never
-   the history before it. It is **not** cleared by "Reset queue", so it
-   stays a permanent record across resets — open it directly on the
-   server, or in a spreadsheet app, if you ever need to recover data
-   outside the app.
+   the history before it. It is **not** cleared by "Reset queue" and
+   **not** touched by CSV imports — it always reflects the original
+   registrations exactly as they came in, as a permanent audit trail.
 
 Worth knowing: a plain crash-and-restart does **not** wipe either file —
 the disk survives as long as the same server instance keeps running. What
@@ -53,11 +61,36 @@ Render's free tier), since that spins up a brand new container. If you're
 on Render free tier, back up `visitors.csv` (via the admin download
 button) before pushing new code during an event.
 
-**Download a live CSV any time**: on the admin page, click **Download CSV**
-next to "Visitors" — it generates a fresh export from the current data
-(including who's been called) and downloads it straight to your device.
-
 Neither file is ever committed to GitHub — see `.gitignore` below.
+
+## Editing visitor details or reordering the queue
+
+Click **Upload CSV** (next to Download CSV, on the admin page) to replace
+the visitor list with an edited file. The typical flow:
+
+1. Click **Download CSV** to get the current list.
+2. Edit it in Excel, Google Sheets, or any spreadsheet app — fix a typo'd
+   name or phone number, correct a service, etc.
+3. **To reorder the queue**, change the numbers in the `Number` column.
+   The call desk always calls tickets in that exact numeric order, so
+   renumbering rows changes who gets called next.
+4. Save as CSV, then click **Upload CSV** on the admin page and choose the
+   edited file. You'll get a confirmation prompt first, since this
+   replaces the entire visitor list.
+
+A few rules the import enforces, with nothing applied if any row fails:
+- Every row needs a unique, positive whole number in `Number`.
+- `Name`, `Phone`, and `Service` can't be blank.
+- `RegisteredAt` and `CalledAt` are optional — leave a row's `RegisteredAt`
+  blank and it's stamped with the current time; leave `CalledAt` blank to
+  mark someone as not yet called.
+
+If anything's wrong, you'll see exactly which rows and why — nothing is
+changed until every row is valid. One thing worth knowing: the app treats
+the numbers in your uploaded file as the new source of truth, so if you
+delete the highest-numbered row rather than just editing it, the *next*
+person who registers could be issued a number that collides with someone
+still in the list. Renumber rather than delete if you're not sure.
 
 ## Changing the list of services
 

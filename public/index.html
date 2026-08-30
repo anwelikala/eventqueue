@@ -304,6 +304,13 @@
     const d = new Date(ts);
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
+  function isValidPhone(phone){
+    // Allow digits, spaces, +, -, ( ) — e.g. "+46 70 123 45 67" or "(011) 234-5678".
+    // Reject anything else (letters, symbols) and require at least 7 digits total.
+    if(!/^[0-9+\-()\s]+$/.test(phone)) return false;
+    const digitCount = (phone.match(/\d/g) || []).length;
+    return digitCount >= 7 && digitCount <= 15;
+  }
 
   async function apiCall(path, opts){
     try{
@@ -382,6 +389,15 @@
         method:'POST',
         headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
         body: JSON.stringify({ service })
+      });
+      if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
+      return res.json();
+    },
+    adminImportVisitors: async (csvText) => {
+      const res = await apiCall('/api/admin/import', {
+        method:'POST',
+        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
+        body: JSON.stringify({ csv: csvText })
       });
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
       return res.json();
@@ -544,13 +560,28 @@
       const serviceChoice = serviceSelect.value;
       const service = serviceChoice === OTHER_VALUE ? otherInput.value.trim() : serviceChoice;
       const errEl = document.getElementById('form-error');
+
       if(!name || !phone || !service){
+        errEl.textContent = 'Please fill in all fields.';
+        errEl.classList.add('show');
+        return;
+      }
+      if(!isValidPhone(phone)){
+        errEl.textContent = 'Enter a valid phone number (digits only, at least 7 digits).';
         errEl.classList.add('show');
         return;
       }
       errEl.classList.remove('show');
       try{
-        const result = await api.register({ name, phone, service });
+        const res = await apiCall('/api/register', {
+          method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, phone, service })
+        });
+        const result = await res.json();
+        if(!res.ok){
+          errEl.textContent = result.error || 'Something went wrong — please check your details.';
+          errEl.classList.add('show');
+          return;
+        }
         myTicket = result.number;
         state = result.state;
         renderTicket();
@@ -771,8 +802,14 @@
         <div class="panel wide-panel">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
             <h3 style="margin:0;">Visitors</h3>
-            <button class="ghost-btn" id="download-csv-btn">Download CSV</button>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="ghost-btn" id="download-csv-btn">Download CSV</button>
+              <button class="ghost-btn" id="upload-csv-btn">Upload CSV</button>
+              <input type="file" id="upload-csv-input" accept=".csv,text/csv" style="display:none;">
+            </div>
           </div>
+          <p style="font-size:12px;color:#8a8d9e;margin:8px 0 0;">To edit visitor details or reorder the queue, download the CSV, edit it (renumbering the "Number" column changes call order), then upload it here — this replaces the visitor list.</p>
+          <p id="import-error-note" style="font-size:13px;color:var(--rust);margin:10px 0 0;display:none;"></p>
           <div id="visitor-table-wrap"></div>
         </div>
       </div>
@@ -860,6 +897,37 @@
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       }catch(e){ showToast("Couldn't download the CSV — try again."); }
+    };
+
+    const importInput = document.getElementById('upload-csv-input');
+    const importErrorNote = document.getElementById('import-error-note');
+    document.getElementById('upload-csv-btn').onclick = ()=> importInput.click();
+    importInput.onchange = async (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      importErrorNote.classList.remove('show');
+      importErrorNote.style.display = 'none';
+      if(!confirm('This replaces the entire visitor list on the server with what\'s in this file. Continue?')){
+        importInput.value = '';
+        return;
+      }
+      try{
+        const text = await file.text();
+        const result = await api.adminImportVisitors(text);
+        if(result.error){
+          importErrorNote.textContent = result.error + (result.details && result.details.length ? ' ' + result.details.join(' · ') : '');
+          importErrorNote.style.display = 'block';
+        }else{
+          state = result.state;
+          showToast(`Imported ${result.count} visitor${result.count === 1 ? '' : 's'}`);
+          loadVisitors();
+          renderAdminPanel();
+        }
+      }catch(err){
+        importErrorNote.textContent = "Couldn't read or upload that file.";
+        importErrorNote.style.display = 'block';
+      }
+      importInput.value = '';
     };
 
     async function loadVisitors(){

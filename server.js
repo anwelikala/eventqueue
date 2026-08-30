@@ -87,7 +87,7 @@ function persist() {
 
 let state = loadState();
 
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Fields safe to show on the public register/display screens — never
@@ -122,10 +122,23 @@ app.get('/api/state', (req, res) => {
   res.json(publicState());
 });
 
+function isValidPhone(phone) {
+  if (!/^[0-9+\-()\s]+$/.test(phone)) return false;
+  const digitCount = (phone.match(/\d/g) || []).length;
+  return digitCount >= 7 && digitCount <= 15;
+}
+
 app.post('/api/register', (req, res) => {
   const name = ((req.body && req.body.name) || '').toString().trim().slice(0, 80);
   const phone = ((req.body && req.body.phone) || '').toString().trim().slice(0, 40);
   const service = ((req.body && req.body.service) || '').toString().trim().slice(0, 120);
+
+  if (!name || !service) {
+    return res.status(400).json({ error: 'Name and service are required.' });
+  }
+  if (!isValidPhone(phone)) {
+    return res.status(400).json({ error: 'Enter a valid phone number (digits only, at least 7 digits).' });
+  }
 
   state.lastIssued += 1;
   const number = state.lastIssued;
@@ -205,10 +218,145 @@ function visitorsToCsv(visitors) {
   return CSV_HEADER + rows.join('\n') + (rows.length ? '\n' : '');
 }
 
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+  const s = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (s[i + 1] === '"') { field += '"'; i++; }
+        else { inQuotes = false; }
+      } else {
+        field += c;
+      }
+    } else if (c === '"') {
+      inQuotes = true;
+    } else if (c === ',') {
+      row.push(field); field = '';
+    } else if (c === '\n') {
+      row.push(field); rows.push(row); row = []; field = '';
+    } else {
+      field += c;
+    }
+  }
+  if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
+  return rows.filter(r => !(r.length === 1 && r[0].trim() === ''));
+}
+
 app.get('/api/admin/export', requireAdmin, (req, res) => {
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename="visitors.csv"');
   res.send(visitorsToCsv(state.visitors));
+});
+
+app.post('/api/admin/import', requireAdmin, (req, res) => {
+  const csvText = (req.body && req.body.csv) || '';
+  if (!csvText.trim()) {
+    return res.status(400).json({ error: 'No CSV content received.' });
+  }
+
+  let rows;
+  try {
+    rows = parseCsv(csvText);
+  } catch (e) {
+    return res.status(400).json({ error: 'Could not parse that file as CSV.' });
+  }
+
+  if (rows.length < 2) {
+    return res.status(400).json({ error: 'The file needs a header row plus at least one visitor row.' });
+  }
+
+  const header = rows[0].map(h => h.trim().toLowerCase());
+  const col = (name) => header.indexOf(name);
+  const idxNumber = col('number');
+  const idxName = col('name');
+  const idxPhone = col('phone');
+  const idxService = col('service');
+  const idxRegisteredAt = col('registeredat');
+  const idxCalledAt = col('calledat');
+
+  if ([idxNumber, idxName, idxPhone, idxService].includes(-1)) {
+    return res.status(400).json({ error: 'The header row must include Number, Name, Phone, and Service columns.' });
+  }
+
+  const errors = [];
+  const seenNumbers = new Set();
+  const newVisitors = [];
+
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    const rowNum = i + 1; // matches the row number a spreadsheet would show
+
+    const numberStr = (r[idxNumber] || '').trim();
+    const name = (r[idxName] || '').trim();
+    const phone = (r[idxPhone] || '').trim();
+    const service = (r[idxService] || '').trim();
+    const registeredAtStr = idxRegisteredAt > -1 ? (r[idxRegisteredAt] || '').trim() : '';
+    const calledAtStr = idxCalledAt > -1 ? (r[idxCalledAt] || '').trim() : '';
+
+    const number = parseInt(numberStr, 10);
+    if (!Number.isInteger(number) || number <= 0) {
+      errors.push(`Row ${rowNum}: "${numberStr}" isn't a valid ticket number.`);
+      continue;
+    }
+    if (seenNumbers.has(number)) {
+      errors.push(`Row ${rowNum}: number ${number} is used more than once.`);
+      continue;
+    }
+    if (!name || !phone || !service) {
+      errors.push(`Row ${rowNum}: name, phone, and service can't be empty.`);
+      continue;
+    }
+
+    let registeredAt = Date.now();
+    if (registeredAtStr) {
+      const parsed = Date.parse(registeredAtStr);
+      if (isNaN(parsed)) {
+        errors.push(`Row ${rowNum}: "${registeredAtStr}" isn't a valid date for RegisteredAt.`);
+        continue;
+      }
+      registeredAt = parsed;
+    }
+
+    let calledAt = null;
+    if (calledAtStr) {
+      const parsed = Date.parse(calledAtStr);
+      if (isNaN(parsed)) {
+        errors.push(`Row ${rowNum}: "${calledAtStr}" isn't a valid date for CalledAt.`);
+        continue;
+      }
+      calledAt = parsed;
+    }
+
+    seenNumbers.add(number);
+    newVisitors.push({ number, name, phone, service, registeredAt, calledAt });
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({
+      error: `Import stopped — ${errors.length} problem${errors.length === 1 ? '' : 's'} found. Nothing was changed.`,
+      details: errors.slice(0, 10)
+    });
+  }
+
+  if (newVisitors.length === 0) {
+    return res.status(400).json({ error: 'No valid visitor rows found in that file.' });
+  }
+
+  newVisitors.sort((a, b) => a.number - b.number);
+  const maxNumber = newVisitors[newVisitors.length - 1].number;
+
+  state.visitors = newVisitors;
+  state.lastIssued = maxNumber;
+  state.nowServing = Math.min(state.nowServing, maxNumber);
+  state.updatedAt = Date.now();
+  persist();
+
+  res.json({ count: newVisitors.length, state: publicState() });
 });
 
 app.post('/api/admin/title', requireAdmin, (req, res) => {
