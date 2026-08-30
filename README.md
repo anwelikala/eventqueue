@@ -1,12 +1,12 @@
 # Queue Ticket System (self-hosted)
 
 A take-a-number system for events: visitors register with their name,
-phone number, optional email, and what they need help with (picked from a
-dropdown, or "Other" to type their own); a display board shows who's being
-helped now; a password-protected call desk calls the next number; and a
-password-protected admin page shows the full visitor list, edits the event
-title, welcome message, and service list, downloads a CSV backup, and
-resets the queue.
+phone number, and what they need help with (picked from a dropdown, or
+"Other" to type their own); a display board shows who's being helped now;
+a password-protected call desk calls the next number; and a
+password-protected admin page shows the full visitor list, edits the
+event title, welcome message, and service list, downloads a CSV backup,
+and resets the queue.
 
 ## Run it locally
 
@@ -17,9 +17,10 @@ npm install
 npm start
 ```
 
-Open **http://localhost:3000**. From the home screen:
-- **Get my number** — visitors fill in name, phone, optional email, and
-  pick a service from the list (or "Other" to type their own).
+Open **http://localhost:3000**. The home screen shows just one thing to
+visitors: **Get my number**. Staff and display options are tucked one
+click away, behind a small **"Staff & display options →"** link at the
+bottom of the home screen, which opens a separate page listing:
 - **Show queue board** — put this on the screen everyone can see.
 - **Call desk** — password-protected. Calls and recalls numbers.
 - **Admin** — password-protected. Visitor list, event title, welcome
@@ -38,61 +39,25 @@ Every registration is saved in two places:
    the admin page and the "Download CSV" button.
 2. **`visitors.csv`** — a plain-text, append-only log. Every registration
    adds one line to this file and nothing already written is ever
-   rewritten, which makes it the more crash-resistant of the two: even if
-   the app crashes mid-write, only the newest line is at risk, never the
-   history before it. It is **not** cleared by "Reset queue", so it stays
-   a permanent record across resets — open it directly on the server, or
-   in a spreadsheet app, if you ever need to recover data outside the app.
+   rewritten, which makes it more crash-resistant than `state.json`: even
+   if the app crashes mid-write, only the newest line is at risk, never
+   the history before it. It is **not** cleared by "Reset queue", so it
+   stays a permanent record across resets — open it directly on the
+   server, or in a spreadsheet app, if you ever need to recover data
+   outside the app.
 
 Worth knowing: a plain crash-and-restart does **not** wipe either file —
 the disk survives as long as the same server instance keeps running. What
 *does* wipe them is a fresh deploy on a host with ephemeral storage (like
 Render's free tier), since that spins up a brand new container. If you're
-on Render free tier, back up `visitors.csv` (via the admin download button,
-or by downloading the file directly from the server) before pushing new
-code during an event, and consider the email BCC option below as an
-entirely off-server safety net.
+on Render free tier, back up `visitors.csv` (via the admin download
+button) before pushing new code during an event.
 
 **Download a live CSV any time**: on the admin page, click **Download CSV**
 next to "Visitors" — it generates a fresh export from the current data
 (including who's been called) and downloads it straight to your device.
 
-## Email confirmations (optional)
-
-If configured, visitors who enter an email address get a message
-confirming their number. This is off by default — the app runs fine
-without it.
-
-Set these as environment variables wherever you run the app:
-
-```bash
-SMTP_HOST=smtp-relay.brevo.com
-SMTP_PORT=587
-SMTP_USER=<the SMTP login Brevo shows you>
-SMTP_PASS=<the SMTP key you generate in Brevo>
-EMAIL_FROM="Mobile Consular Services <the-email-you-verified@yourdomain.com>"
-ADMIN_EMAIL=you@example.com
-```
-
-(Any SMTP provider works the same way — Gmail, Outlook, SendGrid, Mailgun,
-etc. — just use that provider's host, port, and credentials instead.)
-
-- `SMTP_HOST`, `SMTP_USER`, and `SMTP_PASS` are required to turn emailing
-  on — without all three, the app silently skips sending and works
-  normally otherwise.
-- `EMAIL_FROM` is optional; defaults to `SMTP_USER` if not set.
-- `ADMIN_EMAIL` is optional. If set, every confirmation is BCC'd to this
-  address too — a simple way to get a live, off-server copy of every
-  registration as it happens, independent of whatever's stored on the
-  server's disk.
-
-On Render, add these as environment variables in the service's
-**Environment** tab. Saving them triggers an automatic redeploy — check
-the **Events** tab to confirm the new deploy finished before testing.
-
-The admin page shows whether email confirmations are currently enabled,
-under the "Visitors" heading — check that first if emails don't seem to
-be sending.
+Neither file is ever committed to GitHub — see `.gitignore` below.
 
 ## Changing the list of services
 
@@ -108,9 +73,11 @@ whose need isn't listed can still register.
 CALL_PASSWORD=yourcallpassword ADMIN_PASSWORD=youradminpassword npm start
 ```
 
-On Render, set these in the service's Environment tab. If you don't set
-them, the app falls back to the defaults above — change them before a real
-event.
+On Render, set these in the service's Environment tab — either directly
+under "Environment Variables," or via a linked Environment Group (if you
+use a group, make sure it's actually **linked** to the service, not just
+sitting unlinked in the dropdown). If you don't set them, the app falls
+back to the defaults above — change them before a real event.
 
 ## Using it at the event
 
@@ -122,20 +89,23 @@ event.
 4. Optional: turn that URL into a QR code so visitors can scan it.
 
 **More permanent: deploy to a hosting provider**
-Render's free tier works well — deploy this folder, set `CALL_PASSWORD`,
-`ADMIN_PASSWORD`, and (if wanted) the `SMTP_*`/`EMAIL_FROM`/`ADMIN_EMAIL`
-variables in Render's dashboard, and share the resulting URL.
+Render's free tier works well — deploy this folder, set `CALL_PASSWORD`
+and `ADMIN_PASSWORD` as environment variables in Render's dashboard, and
+share the resulting URL.
 
 ## Notes
 
-- Visitor names, phone numbers, emails, and service needs are only ever
-  shown on the admin page — the public register and display screens never
-  expose them.
-- Once you enter the call desk or admin password on a device, that device
+- Visitor names, phone numbers, and service needs are only ever shown on
+  the admin page — the public register and display screens never expose
+  them.
+- Once you log into the call desk or admin page on a device, that device
   stays logged in (via `sessionStorage`) until its browser tab is closed —
-  this is intentional, so staff aren't re-entering the password constantly.
-  To test the password screen itself, use a private/incognito window or
-  close the tab first.
+  this is intentional, so staff aren't re-entering the password
+  constantly. To test the password screen fresh, use a private/incognito
+  window or close the tab first.
+- `.gitignore` keeps `state.json`, `visitors.csv`, and `node_modules/` out
+  of your GitHub repo, since the first two contain visitor personal data
+  and the last is just reinstalled from `package.json`.
 - This is a simple shared-password model, not individual staff accounts —
   fine for a single trusted event team.
 - If two visitors submit the registration form at the exact same instant,

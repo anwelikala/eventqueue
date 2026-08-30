@@ -78,28 +78,61 @@
     padding:10px 18px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;
   }
 
-  /* ---------- landing ---------- */
-  .role-grid{
-    display:grid;grid-template-columns:repeat(4,1fr);gap:18px;
-    max-width:1080px;width:100%;margin-top:28px;
+  /* ---------- landing (hero) ---------- */
+  .landing-title{font-size:clamp(30px,4.5vw,44px);font-weight:800;margin:0 0 8px;text-align:center;}
+  .landing-sub{color:#5b5f73;font-size:15px;margin:0 0 40px;text-align:center;max-width:480px;}
+  .hero-card{
+    background:var(--ink); color:var(--board-digit);
+    border-radius:24px; padding:56px 60px;
+    box-shadow: 0 30px 60px -20px rgba(27,36,64,0.5);
+    display:flex; flex-direction:column; align-items:center; gap:18px;
+    max-width:420px; width:100%;
+    position:relative; overflow:hidden;
   }
-  @media (max-width:980px){ .role-grid{grid-template-columns:repeat(2,1fr); max-width:640px;} }
-  @media (max-width:520px){ .role-grid{grid-template-columns:1fr; max-width:420px;} }
-  .role-card{
-    background:#fff;border:1px solid var(--line);border-radius:18px;
-    padding:26px 20px;text-align:left;cursor:pointer;
-    box-shadow:var(--shadow);
-    transition:transform .15s ease;
+  @media (max-width:520px){ .hero-card{padding:44px 28px;} }
+  .hero-card::before{
+    content:"";position:absolute;top:-40%;right:-30%;width:220px;height:220px;
+    background:radial-gradient(circle, rgba(216,145,46,0.35), transparent 70%);
   }
-  .role-card:hover{transform:translateY(-4px);}
-  .role-card .icon{
+  .hero-icon{
+    width:56px;height:56px;border-radius:16px;background:var(--amber);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:700;font-size:26px;color:var(--ink);
+  }
+  .hero-card h2{margin:0;font-size:24px;}
+  .hero-card p{margin:0;font-size:14px;color:rgba(247,244,236,0.7);line-height:1.5;text-align:center;}
+  .hero-btn{
+    margin-top:8px; width:100%;
+    background:var(--amber); color:var(--ink); border:none;
+    padding:20px 28px; border-radius:14px;
+    font-family:var(--font-body); font-size:18px; font-weight:800;
+    cursor:pointer; letter-spacing:0.2px;
+  }
+  .staff-link{
+    margin-top:36px; background:none; border:none; color:#8a8d9e;
+    font-size:13px; font-weight:600; cursor:pointer; text-decoration:underline;
+    font-family:var(--font-body);
+  }
+  .staff-link:hover{ color:var(--ink-soft); }
+
+  /* ---------- staff & display menu page ---------- */
+  .menu-title{font-size:26px;font-weight:800;margin:0 0 6px;text-align:center;}
+  .menu-sub{color:#5b5f73;font-size:14px;margin:0 0 30px;text-align:center;}
+  .menu-list{display:flex; flex-direction:column; gap:12px; width:100%; max-width:420px;}
+  .menu-item{
+    display:flex; align-items:center; gap:16px;
+    background:#fff; border:1px solid var(--line); border-radius:16px;
+    padding:18px 20px; cursor:pointer; box-shadow:var(--shadow);
+    text-align:left; width:100%;
+    font-family:var(--font-body);
+  }
+  .menu-item:hover{transform:translateY(-2px);}
+  .menu-item .icon{
     width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;
-    font-family:var(--font-display);font-weight:700;font-size:17px;color:#fff;margin-bottom:14px;
+    font-family:var(--font-display);font-weight:700;font-size:17px;color:#fff; flex-shrink:0;
   }
-  .role-card h3{margin:0 0 6px;font-size:16px;}
-  .role-card p{margin:0;font-size:13px;color:#5b5f73;line-height:1.5;}
-  .landing-title{font-size:clamp(28px,4vw,40px);font-weight:800;margin:0 0 6px;text-align:center;}
-  .landing-sub{color:#5b5f73;font-size:15px;margin:0;text-align:center;max-width:520px;}
+  .menu-item h3{margin:0 0 3px;font-size:15px;color:var(--ink);}
+  .menu-item p{margin:0;font-size:12px;color:#8a8d9e;}
 
   /* ---------- forms (register + password gates) ---------- */
   .form-card{
@@ -397,38 +430,61 @@
     `;
   }
 
-  /* ---------------- LANDING ---------------- */
+  /* ---------------- LANDING (hero) ---------------- */
   function renderLanding(){
     app.innerHTML = `
       ${topline(false)}
       <div class="center-col">
         <h1 class="landing-title">Welcome</h1>
         <p class="landing-sub">${escapeHtml(state.welcomeMessage || "Choose what you're here to do.")}</p>
-        <div class="role-grid">
-          <div class="role-card" onclick="__app.openRegister()">
-            <div class="icon" style="background:var(--amber);">#</div>
-            <h3>Get my number</h3>
-            <p>Visitors register here and receive a ticket number.</p>
-          </div>
-          <div class="role-card" onclick="__app.goto('display')">
+
+        <div class="hero-card">
+          <div class="hero-icon">#</div>
+          <h2>Get my number</h2>
+          <p>Register and receive a ticket number. You'll be helped in order.</p>
+          <button class="hero-btn" id="hero-register-btn">Get my number</button>
+        </div>
+
+        <button class="staff-link" onclick="__app.goto('menu')">Staff &amp; display options →</button>
+      </div>
+    `;
+    document.getElementById('hero-register-btn').onclick = openRegister;
+  }
+
+  /* ---------------- STAFF & DISPLAY MENU ---------------- */
+  function renderMenu(){
+    app.innerHTML = `
+      ${topline(true)}
+      <div class="center-col">
+        <h2 class="menu-title">Staff &amp; display options</h2>
+        <p class="menu-sub">Not for visitors — these are for running the event.</p>
+        <div class="menu-list">
+          <button class="menu-item" onclick="__app.goto('display')">
             <div class="icon" style="background:var(--ink);">▤</div>
-            <h3>Show queue board</h3>
-            <p>Put this on the screen everyone can see.</p>
-          </div>
-          <div class="role-card" onclick="__app.goto(sessionStorage.getItem('callPassword') ? 'call-desk' : 'call-login')">
+            <div>
+              <h3>Show queue board</h3>
+              <p>Put this on the screen everyone can see.</p>
+            </div>
+          </button>
+          <button class="menu-item" onclick="__app.goto(sessionStorage.getItem('callPassword') ? 'call-desk' : 'call-login')">
             <div class="icon" style="background:var(--teal);">☎</div>
-            <h3>Call desk</h3>
-            <p>Call the next number. Password required.</p>
-          </div>
-          <div class="role-card" onclick="__app.goto(sessionStorage.getItem('adminPassword') ? 'admin-panel' : 'admin-login')">
+            <div>
+              <h3>Call desk</h3>
+              <p>Call the next number. Password required.</p>
+            </div>
+          </button>
+          <button class="menu-item" onclick="__app.goto(sessionStorage.getItem('adminPassword') ? 'admin-panel' : 'admin-login')">
             <div class="icon" style="background:var(--rust);">⚙</div>
-            <h3>Admin</h3>
-            <p>Visitor list, event name, reset. Password required.</p>
-          </div>
+            <div>
+              <h3>Admin</h3>
+              <p>Visitor list, event name, reset. Password required.</p>
+            </div>
+          </button>
         </div>
       </div>
     `;
   }
+
 
   /* ---------------- REGISTER ---------------- */
   async function openRegister(){
@@ -452,10 +508,6 @@
             <div class="field-group">
               <label class="field-label" for="f-phone">Phone number</label>
               <input class="text-input" id="f-phone" type="tel" required maxlength="40" autocomplete="tel">
-            </div>
-            <div class="field-group">
-              <label class="field-label" for="f-email">Email (optional — for a confirmation of your number)</label>
-              <input class="text-input" id="f-email" type="email" maxlength="100" autocomplete="email">
             </div>
             <div class="field-group">
               <label class="field-label" for="f-service">What do you need help with?</label>
@@ -489,7 +541,6 @@
       e.preventDefault();
       const name = document.getElementById('f-name').value.trim();
       const phone = document.getElementById('f-phone').value.trim();
-      const email = document.getElementById('f-email').value.trim();
       const serviceChoice = serviceSelect.value;
       const service = serviceChoice === OTHER_VALUE ? otherInput.value.trim() : serviceChoice;
       const errEl = document.getElementById('form-error');
@@ -499,7 +550,7 @@
       }
       errEl.classList.remove('show');
       try{
-        const result = await api.register({ name, phone, email, service });
+        const result = await api.register({ name, phone, service });
         myTicket = result.number;
         state = result.state;
         renderTicket();
@@ -719,10 +770,7 @@
         </div>
         <div class="panel wide-panel">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-            <div>
-              <h3 style="margin:0;">Visitors</h3>
-              <p id="email-status-note" style="font-size:12px;color:#8a8d9e;margin:4px 0 0;"></p>
-            </div>
+            <h3 style="margin:0;">Visitors</h3>
             <button class="ghost-btn" id="download-csv-btn">Download CSV</button>
           </div>
           <div id="visitor-table-wrap"></div>
@@ -818,12 +866,6 @@
       try{
         const data = await api.adminVisitors();
         renderVisitorTable(data.visitors);
-        const noteEl = document.getElementById('email-status-note');
-        if(noteEl){
-          noteEl.textContent = data.emailEnabled
-            ? 'Email confirmations: enabled'
-            : 'Email confirmations: not configured (see README)';
-        }
       }catch(e){ /* handled */ }
     }
     function renderVisitorTable(visitors){
@@ -838,7 +880,6 @@
           <td>${String(v.number).padStart(3,'0')}</td>
           <td>${escapeHtml(v.name || '—')}</td>
           <td>${escapeHtml(v.phone || '—')}</td>
-          <td>${escapeHtml(v.email || '—')}</td>
           <td>${escapeHtml(v.service || '—')}</td>
           <td>${fmtTime(v.registeredAt)}</td>
           <td><span class="status-pill ${v.calledAt ? 'called' : 'waiting'}">${v.calledAt ? 'Called' : 'Waiting'}</span></td>
@@ -848,7 +889,7 @@
         <div class="table-scroll">
           <table class="visitor-table">
             <thead>
-              <tr><th>#</th><th>Name</th><th>Phone</th><th>Email</th><th>Needs help with</th><th>Registered</th><th>Status</th></tr>
+              <tr><th>#</th><th>Name</th><th>Phone</th><th>Needs help with</th><th>Registered</th><th>Status</th></tr>
             </thead>
             <tbody>${rows}</tbody>
           </table>
@@ -862,6 +903,7 @@
 
   function render(){
     if(view === 'landing') renderLanding();
+    else if(view === 'menu') renderMenu();
     else if(view === 'register') renderRegister();
     else if(view === 'display') renderDisplay();
     else if(view === 'call-login') renderCallLogin();
