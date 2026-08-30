@@ -34,8 +34,8 @@ Default passwords (change these before your event — see below):
 
 **If you're hosting on Render's free tier (or any host with an ephemeral
 filesystem), every time you push new code and it redeploys, the disk is
-wiped — including all registered visitor data.** This has already
-happened once; here's how to make sure it doesn't again.
+wiped — including all registered visitor data.** Here's how to make sure
+that doesn't happen.
 
 Set these two environment variables (on Render: Environment tab) to store
 data in [Upstash](https://upstash.com) instead of a local file — a free,
@@ -48,8 +48,9 @@ UPSTASH_REDIS_REST_TOKEN=your-rest-token
 
 **Getting these values (takes about 2 minutes, no credit card):**
 1. Sign up free at [upstash.com](https://upstash.com).
-2. Click **Create Database**, give it any name, pick a region (doesn't
-   need to match Render's exactly).
+2. Click **Create Database** and choose the **Redis** database type (not
+   Vector or QStash — those are for different purposes). Give it any
+   name, pick any region.
 3. On the database's page, scroll to the **REST API** section — it shows
    `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` directly,
    ready to copy.
@@ -61,10 +62,9 @@ deploys only replace your code, never your data. The free tier covers
 500,000 requests/month, far more than a single event needs.
 
 **Without these two variables set**, the app still works, but falls back
-to a local file that a fresh deploy on Render's free tier will wipe —
-exactly what happened before. The server logs which mode it's in on
-startup, so you can always check: look for "Persistent storage: Upstash"
-vs. "Persistent storage: local file only" in Render's Logs tab.
+to a local file that a fresh deploy on Render's free tier will wipe. The
+server logs which mode it's in on startup — look for "Persistent storage:
+Upstash" vs. "Persistent storage: local file only" in Render's Logs tab.
 
 ## Editing visitor details or reordering the queue
 
