@@ -7,12 +7,41 @@ const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'state.json');
 const CSV_FILE = path.join(__dirname, 'visitors.csv');
 const CSV_HEADER = 'Number,Name,Phone,Service,RegisteredAt,CalledAt\n';
+const REDIS_KEY = 'queue-app-state';
 
 // Change these — either edit the defaults below, or (recommended) set
 // CALL_PASSWORD and ADMIN_PASSWORD as environment variables on your host
 // so you don't have to put real passwords in the code.
 const CALL_PASSWORD = process.env.CALL_PASSWORD || 'call1234';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin1234';
+
+// Optional persistent storage via Upstash (a free Redis service reachable
+// over plain HTTPS — see README). When both variables are set, all queue
+// and visitor data is stored there instead of a local file, so it survives
+// a fresh deploy on hosts with ephemeral disks (like Render's free tier).
+// Without these set, the app falls back to a local file, which works fine
+// for local use but is wiped by a redeploy on such hosts.
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const usingUpstash = !!(UPSTASH_URL && UPSTASH_TOKEN);
+
+async function upstashGet(key) {
+  const res = await fetch(`${UPSTASH_URL}/get/${encodeURIComponent(key)}`, {
+    headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
+  });
+  if (!res.ok) throw new Error(`Upstash GET failed: ${res.status}`);
+  const data = await res.json();
+  return data.result; // string or null
+}
+
+async function upstashSet(key, value) {
+  const res = await fetch(`${UPSTASH_URL}/set/${encodeURIComponent(key)}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${UPSTASH_TOKEN}`, 'Content-Type': 'text/plain' },
+    body: value
+  });
+  if (!res.ok) throw new Error(`Upstash SET failed: ${res.status}`);
+}
 
 function csvEscape(value) {
   const str = (value === null || value === undefined) ? '' : String(value);
@@ -42,8 +71,6 @@ function appendVisitorToCsv(visitor) {
   });
 }
 
-ensureCsvFile();
-
 const DEFAULT_STATE = {
   title: 'Application Help Day',
   welcomeMessage: "Choose what you're here to do.",
@@ -64,28 +91,47 @@ const DEFAULT_STATE = {
   visitors: [] // { number, name, phone, service, registeredAt, calledAt }
 };
 
-function loadState() {
+function mergeWithDefaults(parsed) {
+  return {
+    ...DEFAULT_STATE,
+    ...parsed,
+    services: Array.isArray(parsed.services) ? parsed.services : DEFAULT_STATE.services,
+    visitors: Array.isArray(parsed.visitors) ? parsed.visitors : []
+  };
+}
+
+async function loadState() {
+  if (usingUpstash) {
+    try {
+      const raw = await upstashGet(REDIS_KEY);
+      if (raw) return mergeWithDefaults(JSON.parse(raw));
+      return { ...DEFAULT_STATE };
+    } catch (e) {
+      console.error('Could not load state from Upstash, starting from defaults:', e.message);
+      return { ...DEFAULT_STATE };
+    }
+  }
   try {
     const raw = fs.readFileSync(DATA_FILE, 'utf8');
-    const parsed = JSON.parse(raw);
-    return {
-      ...DEFAULT_STATE,
-      ...parsed,
-      services: Array.isArray(parsed.services) ? parsed.services : DEFAULT_STATE.services,
-      visitors: Array.isArray(parsed.visitors) ? parsed.visitors : []
-    };
+    return mergeWithDefaults(JSON.parse(raw));
   } catch (e) {
     return { ...DEFAULT_STATE };
   }
 }
 
 function persist() {
-  fs.writeFile(DATA_FILE, JSON.stringify(state, null, 2), (err) => {
-    if (err) console.error('Failed to save state.json:', err);
+  const json = JSON.stringify(state, null, 2);
+  if (usingUpstash) {
+    upstashSet(REDIS_KEY, json).catch(err => console.error('Failed to save state to Upstash:', err.message));
+  }
+  // Always also mirror to a local file — convenient for local use, and a
+  // harmless (if ephemeral) extra copy when Upstash is the primary store.
+  fs.writeFile(DATA_FILE, json, (err) => {
+    if (err) console.error('Failed to save state.json locally:', err);
   });
 }
 
-let state = loadState();
+let state = { ...DEFAULT_STATE };
 
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -404,6 +450,15 @@ app.post('/api/admin/reset', requireAdmin, (req, res) => {
   res.json(publicState());
 });
 
-app.listen(PORT, () => {
-  console.log(`Queue system running at http://localhost:${PORT}`);
-});
+async function start() {
+  state = await loadState();
+  ensureCsvFile();
+  app.listen(PORT, () => {
+    console.log(`Queue system running at http://localhost:${PORT}`);
+    console.log(usingUpstash
+      ? 'Persistent storage: Upstash (survives redeploys).'
+      : 'Persistent storage: local file only (will NOT survive a fresh deploy on hosts with ephemeral disks, e.g. Render free tier).');
+  });
+}
+
+start();

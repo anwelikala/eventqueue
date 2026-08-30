@@ -30,38 +30,41 @@ Default passwords (change these before your event — see below):
 - Call desk: `call1234`
 - Admin: `admin1234`
 
-## Phone number validation
+## ⚠️ Preventing data loss on redeploy (important — read this)
 
-The registration form requires a plausible phone number: digits, spaces,
-`+`, `-`, and `()` are allowed (so international formats like
-`+46 70 123 45 67` work fine), with at least 7 and at most 15 digits.
-Letters or too few/too many digits are rejected with an inline message.
-This is checked both in the browser and on the server, so it holds even
-if someone calls the API directly rather than using the form.
+**If you're hosting on Render's free tier (or any host with an ephemeral
+filesystem), every time you push new code and it redeploys, the disk is
+wiped — including all registered visitor data.** This has already
+happened once; here's how to make sure it doesn't again.
 
-## How visitor data is stored
+Set these two environment variables (on Render: Environment tab) to store
+data in [Upstash](https://upstash.com) instead of a local file — a free,
+permanent key-value store that isn't wiped by a redeploy:
 
-Every registration is saved in two places:
+```bash
+UPSTASH_REDIS_REST_URL=https://your-db-name.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your-rest-token
+```
 
-1. **`state.json`** — the live working data the app reads from. Rewritten
-   after every change (registration, call, reset, import). This is what
-   powers the admin page.
-2. **`visitors.csv`** — a plain-text, append-only log. Every registration
-   adds one line to this file and nothing already written is ever
-   rewritten, which makes it more crash-resistant than `state.json`: even
-   if the app crashes mid-write, only the newest line is at risk, never
-   the history before it. It is **not** cleared by "Reset queue" and
-   **not** touched by CSV imports — it always reflects the original
-   registrations exactly as they came in, as a permanent audit trail.
+**Getting these values (takes about 2 minutes, no credit card):**
+1. Sign up free at [upstash.com](https://upstash.com).
+2. Click **Create Database**, give it any name, pick a region (doesn't
+   need to match Render's exactly).
+3. On the database's page, scroll to the **REST API** section — it shows
+   `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` directly,
+   ready to copy.
+4. Add both as environment variables on Render (or wherever you host),
+   save, and let it redeploy once.
 
-Worth knowing: a plain crash-and-restart does **not** wipe either file —
-the disk survives as long as the same server instance keeps running. What
-*does* wipe them is a fresh deploy on a host with ephemeral storage (like
-Render's free tier), since that spins up a brand new container. If you're
-on Render free tier, back up `visitors.csv` (via the admin download
-button) before pushing new code during an event.
+From that point on, all queue and visitor data lives in Upstash — future
+deploys only replace your code, never your data. The free tier covers
+500,000 requests/month, far more than a single event needs.
 
-Neither file is ever committed to GitHub — see `.gitignore` below.
+**Without these two variables set**, the app still works, but falls back
+to a local file that a fresh deploy on Render's free tier will wipe —
+exactly what happened before. The server logs which mode it's in on
+startup, so you can always check: look for "Persistent storage: Upstash"
+vs. "Persistent storage: local file only" in Render's Logs tab.
 
 ## Editing visitor details or reordering the queue
 
@@ -91,6 +94,33 @@ the numbers in your uploaded file as the new source of truth, so if you
 delete the highest-numbered row rather than just editing it, the *next*
 person who registers could be issued a number that collides with someone
 still in the list. Renumber rather than delete if you're not sure.
+
+## Phone number validation
+
+The registration form requires a plausible phone number: digits, spaces,
+`+`, `-`, and `()` are allowed (so international formats like
+`+46 70 123 45 67` work fine), with at least 7 and at most 15 digits.
+Letters or too few/too many digits are rejected with an inline message.
+This is checked both in the browser and on the server, so it holds even
+if someone calls the API directly rather than using the form.
+
+## How visitor data is stored
+
+Every registration is saved to whichever store is configured (Upstash if
+set up as above, otherwise a local `state.json` file — see the warning
+above about which one survives a redeploy). Either way, this is what
+powers the admin page and is rewritten after every change (registration,
+call, reset, import).
+
+There's also **`visitors.csv`** — a local, plain-text, append-only log.
+Every registration adds one line here and nothing already written is ever
+rewritten. It's a convenient local mirror and isn't cleared by "Reset
+queue" or touched by CSV imports, but — like `state.json` — it lives on
+local disk, so it's still wiped by a redeploy on ephemeral hosts. Once
+Upstash is set up, it is **not** the safety net anymore; think of it as a
+nice-to-have local companion log, not your backup.
+
+Neither file is ever committed to GitHub — see `.gitignore` below.
 
 ## Changing the list of services
 
@@ -122,9 +152,9 @@ back to the defaults above — change them before a real event.
 4. Optional: turn that URL into a QR code so visitors can scan it.
 
 **More permanent: deploy to a hosting provider**
-Render's free tier works well — deploy this folder, set `CALL_PASSWORD`
-and `ADMIN_PASSWORD` as environment variables in Render's dashboard, and
-share the resulting URL.
+Render's free tier works well — deploy this folder, set `CALL_PASSWORD`,
+`ADMIN_PASSWORD`, and (strongly recommended) the two `UPSTASH_*`
+variables above in Render's dashboard, and share the resulting URL.
 
 ## Notes
 
