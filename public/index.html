@@ -207,6 +207,20 @@
   .status-pill.called{background:#DCEEE8;color:var(--teal);}
   .empty-note{color:#8a8d9e;font-size:14px;margin-top:18px;text-align:center;}
 
+  /* ---------- service chips (admin) ---------- */
+  .service-chip-list{display:flex;flex-wrap:wrap;gap:8px;}
+  .service-chip{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--paper);border-radius:100px;
+    padding:8px 8px 8px 14px;font-size:13px;
+  }
+  .service-chip span{max-width:320px;}
+  .chip-remove{
+    background:none;border:none;color:var(--rust);font-size:16px;line-height:1;
+    cursor:pointer;padding:2px 6px;font-weight:700;
+  }
+  .chip-remove:hover{color:#fff;background:var(--rust);border-radius:50%;}
+
   .toast{
     position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
     background:var(--ink);color:var(--board-digit);padding:12px 22px;border-radius:100px;
@@ -229,7 +243,8 @@
 
 <script>
 (function(){
-  let state = { title: 'Queue', lastIssued: 0, nowServing: 0, updatedAt: 0 };
+  const OTHER_VALUE = '__other__';
+  let state = { title: 'Queue', welcomeMessage: '', services: [], lastIssued: 0, nowServing: 0, updatedAt: 0 };
   let view = 'landing';
   let myTicket = null;
   let pollTimer = null;
@@ -311,6 +326,33 @@
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
       return res.json();
     },
+    adminSetWelcome: async (message) => {
+      const res = await apiCall('/api/admin/welcome', {
+        method:'POST',
+        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
+        body: JSON.stringify({ message })
+      });
+      if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
+      return res.json();
+    },
+    adminAddService: async (service) => {
+      const res = await apiCall('/api/admin/services/add', {
+        method:'POST',
+        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
+        body: JSON.stringify({ service })
+      });
+      if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
+      return res.json();
+    },
+    adminRemoveService: async (service) => {
+      const res = await apiCall('/api/admin/services/remove', {
+        method:'POST',
+        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
+        body: JSON.stringify({ service })
+      });
+      if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
+      return res.json();
+    },
     adminReset: async () => {
       const res = await apiCall('/api/admin/reset', { method:'POST', headers: authHeaders('admin') });
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
@@ -361,9 +403,9 @@
       ${topline(false)}
       <div class="center-col">
         <h1 class="landing-title">Welcome</h1>
-        <p class="landing-sub">Choose what you're here to do at <strong>${escapeHtml(state.title)}</strong>.</p>
+        <p class="landing-sub">${escapeHtml(state.welcomeMessage || "Choose what you're here to do.")}</p>
         <div class="role-grid">
-          <div class="role-card" onclick="__app.goto('register')">
+          <div class="role-card" onclick="__app.openRegister()">
             <div class="icon" style="background:var(--amber);">#</div>
             <h3>Get my number</h3>
             <p>Visitors register here and receive a ticket number.</p>
@@ -389,6 +431,12 @@
   }
 
   /* ---------------- REGISTER ---------------- */
+  async function openRegister(){
+    stopPolling();
+    view = 'register';
+    try{ state = await api.getState(); }catch(e){ /* fall back to cached state */ }
+    if(view === 'register') renderRegister();
+  }
   function renderRegister(){
     app.innerHTML = `
       ${topline(true)}
@@ -407,7 +455,15 @@
             </div>
             <div class="field-group">
               <label class="field-label" for="f-service">What do you need help with?</label>
-              <input class="text-input" id="f-service" type="text" required maxlength="120" placeholder="e.g. Housing application">
+              <select class="text-input" id="f-service" required>
+                <option value="" disabled selected>Select a service</option>
+                ${(state.services || []).map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('')}
+                <option value="${OTHER_VALUE}">Other (please specify)</option>
+              </select>
+            </div>
+            <div class="field-group" id="other-service-group" style="display:none;">
+              <label class="field-label" for="f-service-other">Please specify</label>
+              <input class="text-input" id="f-service-other" type="text" maxlength="120" placeholder="Tell us what you need help with">
             </div>
             <div class="field-error" id="form-error">Please fill in all fields.</div>
             <button class="primary-btn" type="submit" style="width:100%;">Get my number</button>
@@ -415,11 +471,22 @@
         </div>
       </div>
     `;
+    const serviceSelect = document.getElementById('f-service');
+    const otherGroup = document.getElementById('other-service-group');
+    const otherInput = document.getElementById('f-service-other');
+    serviceSelect.onchange = ()=>{
+      const isOther = serviceSelect.value === OTHER_VALUE;
+      otherGroup.style.display = isOther ? 'block' : 'none';
+      otherInput.required = isOther;
+      if(!isOther) otherInput.value = '';
+    };
+
     document.getElementById('register-form').onsubmit = async (e)=>{
       e.preventDefault();
       const name = document.getElementById('f-name').value.trim();
       const phone = document.getElementById('f-phone').value.trim();
-      const service = document.getElementById('f-service').value.trim();
+      const serviceChoice = serviceSelect.value;
+      const service = serviceChoice === OTHER_VALUE ? otherInput.value.trim() : serviceChoice;
       const errEl = document.getElementById('form-error');
       if(!name || !phone || !service){
         errEl.classList.add('show');
@@ -458,7 +525,7 @@
           <div style="text-align:center;">
             <div class="ahead-pill" id="ahead-pill">${ahead === 0 ? "You're next" : ahead + ' number' + (ahead===1?'':'s') + ' ahead of you'}</div>
           </div>
-          <button class="new-ticket-link" onclick="__app.goto('register')">Get a different number</button>
+          <button class="new-ticket-link" onclick="__app.openRegister()">Get a different number</button>
         </div>
       </div>
     `;
@@ -613,12 +680,33 @@
             </div>
           </div>
           <div class="panel">
-            <h3>Event name</h3>
-            <p style="font-size:13px;color:#8a8d9e;margin:6px 0 14px;">Shown on the register and display screens.</p>
-            <label class="field-label" for="title-input">Event title</label>
-            <input class="text-input" id="title-input" value="${escapeHtml(state.title)}" maxlength="60">
-            <div class="save-row">
-              <button class="ghost-btn" id="save-title-btn" style="flex:1;">Save name</button>
+            <h3>Landing page text</h3>
+            <p style="font-size:13px;color:#8a8d9e;margin:6px 0 14px;">Event title shows in the header on every screen. The welcome message shows under "Welcome" on the home screen.</p>
+            <div class="field-group">
+              <label class="field-label" for="title-input">Event title</label>
+              <input class="text-input" id="title-input" value="${escapeHtml(state.title)}" maxlength="60">
+              <div class="save-row">
+                <button class="ghost-btn" id="save-title-btn" style="flex:1;">Save title</button>
+              </div>
+            </div>
+            <div class="field-group" style="margin-top:20px;">
+              <label class="field-label" for="welcome-input">Welcome message</label>
+              <input class="text-input" id="welcome-input" value="${escapeHtml(state.welcomeMessage || '')}" maxlength="200">
+              <div class="save-row">
+                <button class="ghost-btn" id="save-welcome-btn" style="flex:1;">Save message</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel wide-panel" style="margin-bottom:20px;">
+          <h3>Services</h3>
+          <p style="font-size:13px;color:#8a8d9e;margin:6px 0 14px;">Shown as options when visitors register. "Other" is always available in addition to this list.</p>
+          <div id="services-list-wrap"></div>
+          <div class="field-group" style="margin-top:16px;max-width:460px;">
+            <label class="field-label" for="new-service-input">Add a service</label>
+            <div style="display:flex;gap:10px;">
+              <input class="text-input" id="new-service-input" type="text" maxlength="120" placeholder="e.g. Notarial certification" style="flex:1;">
+              <button class="ghost-btn" id="add-service-btn">Add</button>
             </div>
           </div>
         </div>
@@ -643,9 +731,58 @@
       if(!val) return;
       try{
         state = await api.adminSetTitle(val);
-        showToast('Event name saved');
+        showToast('Event title saved');
       }catch(e){ /* handled */ }
     };
+    document.getElementById('save-welcome-btn').onclick = async ()=>{
+      const val = document.getElementById('welcome-input').value.trim();
+      if(!val) return;
+      try{
+        state = await api.adminSetWelcome(val);
+        showToast('Welcome message saved');
+      }catch(e){ /* handled */ }
+    };
+
+    function renderServicesList(){
+      const wrap = document.getElementById('services-list-wrap');
+      if(!wrap) return;
+      const services = state.services || [];
+      if(services.length === 0){
+        wrap.innerHTML = `<p class="empty-note">No services added yet — visitors will only see "Other".</p>`;
+        return;
+      }
+      wrap.innerHTML = `
+        <div class="service-chip-list">
+          ${services.map(s => `
+            <div class="service-chip">
+              <span>${escapeHtml(s)}</span>
+              <button class="chip-remove" type="button" data-service="${escapeHtml(s)}" aria-label="Remove ${escapeHtml(s)}">×</button>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      wrap.querySelectorAll('.chip-remove').forEach(btn=>{
+        btn.onclick = async ()=>{
+          try{
+            state = await api.adminRemoveService(btn.getAttribute('data-service'));
+            renderServicesList();
+            showToast('Service removed');
+          }catch(e){ /* handled */ }
+        };
+      });
+    }
+    document.getElementById('add-service-btn').onclick = async ()=>{
+      const input = document.getElementById('new-service-input');
+      const val = input.value.trim();
+      if(!val) return;
+      try{
+        state = await api.adminAddService(val);
+        input.value = '';
+        renderServicesList();
+        showToast('Service added');
+      }catch(e){ /* handled */ }
+    };
+    renderServicesList();
 
     async function loadVisitors(){
       try{
@@ -696,7 +833,7 @@
     else if(view === 'admin-panel') renderAdminPanel();
   }
 
-  window.__app = { goto };
+  window.__app = { goto, openRegister };
 
   (async function init(){
     try{ state = await api.getState(); }catch(e){ /* fall back to defaults, retried on poll */ }

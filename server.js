@@ -14,6 +14,18 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin1234';
 
 const DEFAULT_STATE = {
   title: 'Application Help Day',
+  welcomeMessage: "Choose what you're here to do.",
+  services: [
+    'Renewal of Passports',
+    'Applications for Registration of Birth / Citizenship / Dual Citizenships',
+    'Driving License Renewal',
+    'Registration of Marriages / Death',
+    'Application for Marriage, Death Certificate extracts',
+    'Attestations',
+    'Power of Attorneys',
+    'Affidavits',
+    'Legalization of Documents certified by the Ministry for Foreign Affairs, Denmark'
+  ],
   lastIssued: 0,
   nowServing: 0,
   updatedAt: Date.now(),
@@ -27,6 +39,7 @@ function loadState() {
     return {
       ...DEFAULT_STATE,
       ...parsed,
+      services: Array.isArray(parsed.services) ? parsed.services : DEFAULT_STATE.services,
       visitors: Array.isArray(parsed.visitors) ? parsed.visitors : []
     };
   } catch (e) {
@@ -50,6 +63,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 function publicState() {
   return {
     title: state.title,
+    welcomeMessage: state.welcomeMessage,
+    services: state.services,
     lastIssued: state.lastIssued,
     nowServing: state.nowServing,
     updatedAt: state.updatedAt
@@ -149,6 +164,33 @@ app.post('/api/admin/title', requireAdmin, (req, res) => {
     state.title = title;
     persist();
   }
+  res.json(publicState());
+});
+
+app.post('/api/admin/welcome', requireAdmin, (req, res) => {
+  const message = ((req.body && req.body.message) || '').toString().trim().slice(0, 200);
+  if (message) {
+    state.welcomeMessage = message;
+    persist();
+  }
+  res.json(publicState());
+});
+
+app.post('/api/admin/services/add', requireAdmin, (req, res) => {
+  const service = ((req.body && req.body.service) || '').toString().trim().slice(0, 120);
+  if (service && !state.services.includes(service)) {
+    state.services.push(service);
+    state.updatedAt = Date.now();
+    persist();
+  }
+  res.json(publicState());
+});
+
+app.post('/api/admin/services/remove', requireAdmin, (req, res) => {
+  const service = ((req.body && req.body.service) || '').toString();
+  state.services = state.services.filter(s => s !== service);
+  state.updatedAt = Date.now();
+  persist();
   res.json(publicState());
 });
 
