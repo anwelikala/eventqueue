@@ -1,16 +1,84 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'state.json');
+const CSV_FILE = path.join(__dirname, 'visitors.csv');
+const CSV_HEADER = 'Number,Name,Phone,Email,Service,RegisteredAt,CalledAt\n';
 
 // Change these — either edit the defaults below, or (recommended) set
 // CALL_PASSWORD and ADMIN_PASSWORD as environment variables on your host
 // so you don't have to put real passwords in the code.
 const CALL_PASSWORD = process.env.CALL_PASSWORD || 'call1234';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin1234';
+
+// Optional email confirmations — only active if all three SMTP_* variables
+// are set (see README). ADMIN_EMAIL is optional; if set, every confirmation
+// is BCC'd there too, which doubles as an off-server backup of every
+// registration.
+const SMTP_HOST = process.env.SMTP_HOST;
+const SMTP_PORT = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;
+const SMTP_USER = process.env.SMTP_USER;
+const SMTP_PASS = process.env.SMTP_PASS;
+const EMAIL_FROM = process.env.EMAIL_FROM || SMTP_USER;
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '';
+
+const emailEnabled = !!(SMTP_HOST && SMTP_USER && SMTP_PASS);
+const transporter = emailEnabled ? nodemailer.createTransport({
+  host: SMTP_HOST,
+  port: SMTP_PORT,
+  secure: SMTP_PORT === 465,
+  auth: { user: SMTP_USER, pass: SMTP_PASS }
+}) : null;
+
+async function sendConfirmationEmail(visitor, eventTitle) {
+  if (!emailEnabled || !visitor.email) return;
+  try {
+    await transporter.sendMail({
+      from: EMAIL_FROM,
+      to: visitor.email,
+      bcc: ADMIN_EMAIL || undefined,
+      subject: `Your number: ${String(visitor.number).padStart(3, '0')} — ${eventTitle}`,
+      text: `Hi ${visitor.name || 'there'},\n\nYour number for "${visitor.service}" at ${eventTitle} is ${String(visitor.number).padStart(3, '0')}.\n\nWe'll help you in order — please watch the queue screen, or check back closer to your number.\n\nThanks for your patience.`
+    });
+  } catch (err) {
+    console.error('Failed to send confirmation email:', err.message);
+  }
+}
+
+function csvEscape(value) {
+  const str = (value === null || value === undefined) ? '' : String(value);
+  if (/[",\n]/.test(str)) {
+    return '"' + str.replace(/"/g, '""') + '"';
+  }
+  return str;
+}
+
+function ensureCsvFile() {
+  if (!fs.existsSync(CSV_FILE)) {
+    fs.writeFileSync(CSV_FILE, CSV_HEADER);
+  }
+}
+
+function appendVisitorToCsv(visitor) {
+  const row = [
+    visitor.number,
+    csvEscape(visitor.name),
+    csvEscape(visitor.phone),
+    csvEscape(visitor.email),
+    csvEscape(visitor.service),
+    new Date(visitor.registeredAt).toISOString(),
+    visitor.calledAt ? new Date(visitor.calledAt).toISOString() : ''
+  ].join(',') + '\n';
+  fs.appendFile(CSV_FILE, row, (err) => {
+    if (err) console.error('Failed to append to visitors.csv:', err);
+  });
+}
+
+ensureCsvFile();
 
 const DEFAULT_STATE = {
   title: 'Application Help Day',
@@ -93,21 +161,30 @@ app.get('/api/state', (req, res) => {
 app.post('/api/register', (req, res) => {
   const name = ((req.body && req.body.name) || '').toString().trim().slice(0, 80);
   const phone = ((req.body && req.body.phone) || '').toString().trim().slice(0, 40);
+  const email = ((req.body && req.body.email) || '').toString().trim().slice(0, 100);
   const service = ((req.body && req.body.service) || '').toString().trim().slice(0, 120);
 
   state.lastIssued += 1;
   const number = state.lastIssued;
-  state.visitors.push({
+  const visitor = {
     number,
     name,
     phone,
+    email,
     service,
     registeredAt: Date.now(),
     calledAt: null
-  });
+  };
+  state.visitors.push(visitor);
   state.updatedAt = Date.now();
   persist();
+  appendVisitorToCsv(visitor);
+
   res.json({ number, state: publicState() });
+
+  // Fire-and-forget — don't make the visitor wait on an email round trip.
+  // Errors are caught and logged inside sendConfirmationEmail.
+  sendConfirmationEmail(visitor, state.title);
 });
 
 /* ------------------------------------------------------------------ */
@@ -154,8 +231,28 @@ app.get('/api/admin/visitors', requireAdmin, (req, res) => {
     title: state.title,
     nowServing: state.nowServing,
     lastIssued: state.lastIssued,
-    visitors: state.visitors
+    visitors: state.visitors,
+    emailEnabled
   });
+});
+
+function visitorsToCsv(visitors) {
+  const rows = visitors.map(v => [
+    v.number,
+    csvEscape(v.name),
+    csvEscape(v.phone),
+    csvEscape(v.email),
+    csvEscape(v.service),
+    new Date(v.registeredAt).toISOString(),
+    v.calledAt ? new Date(v.calledAt).toISOString() : ''
+  ].join(','));
+  return CSV_HEADER + rows.join('\n') + (rows.length ? '\n' : '');
+}
+
+app.get('/api/admin/export', requireAdmin, (req, res) => {
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename="visitors.csv"');
+  res.send(visitorsToCsv(state.visitors));
 });
 
 app.post('/api/admin/title', requireAdmin, (req, res) => {

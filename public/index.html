@@ -454,6 +454,10 @@
               <input class="text-input" id="f-phone" type="tel" required maxlength="40" autocomplete="tel">
             </div>
             <div class="field-group">
+              <label class="field-label" for="f-email">Email (optional — for a confirmation of your number)</label>
+              <input class="text-input" id="f-email" type="email" maxlength="100" autocomplete="email">
+            </div>
+            <div class="field-group">
               <label class="field-label" for="f-service">What do you need help with?</label>
               <select class="text-input" id="f-service" required>
                 <option value="" disabled selected>Select a service</option>
@@ -485,6 +489,7 @@
       e.preventDefault();
       const name = document.getElementById('f-name').value.trim();
       const phone = document.getElementById('f-phone').value.trim();
+      const email = document.getElementById('f-email').value.trim();
       const serviceChoice = serviceSelect.value;
       const service = serviceChoice === OTHER_VALUE ? otherInput.value.trim() : serviceChoice;
       const errEl = document.getElementById('form-error');
@@ -494,7 +499,7 @@
       }
       errEl.classList.remove('show');
       try{
-        const result = await api.register({ name, phone, service });
+        const result = await api.register({ name, phone, email, service });
         myTicket = result.number;
         state = result.state;
         renderTicket();
@@ -711,7 +716,13 @@
           </div>
         </div>
         <div class="panel wide-panel">
-          <h3>Visitors</h3>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <div>
+              <h3 style="margin:0;">Visitors</h3>
+              <p id="email-status-note" style="font-size:12px;color:#8a8d9e;margin:4px 0 0;"></p>
+            </div>
+            <button class="ghost-btn" id="download-csv-btn">Download CSV</button>
+          </div>
           <div id="visitor-table-wrap"></div>
         </div>
       </div>
@@ -784,10 +795,33 @@
     };
     renderServicesList();
 
+    document.getElementById('download-csv-btn').onclick = async ()=>{
+      try{
+        const res = await apiCall('/api/admin/export', { headers: authHeaders('admin') });
+        if(res.status === 401){ handleAuthFailure('admin'); return; }
+        const text = await res.text();
+        const blob = new Blob([text], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'visitors.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }catch(e){ showToast("Couldn't download the CSV — try again."); }
+    };
+
     async function loadVisitors(){
       try{
         const data = await api.adminVisitors();
         renderVisitorTable(data.visitors);
+        const noteEl = document.getElementById('email-status-note');
+        if(noteEl){
+          noteEl.textContent = data.emailEnabled
+            ? 'Email confirmations: enabled'
+            : 'Email confirmations: not configured (see README)';
+        }
       }catch(e){ /* handled */ }
     }
     function renderVisitorTable(visitors){
@@ -802,6 +836,7 @@
           <td>${String(v.number).padStart(3,'0')}</td>
           <td>${escapeHtml(v.name || '—')}</td>
           <td>${escapeHtml(v.phone || '—')}</td>
+          <td>${escapeHtml(v.email || '—')}</td>
           <td>${escapeHtml(v.service || '—')}</td>
           <td>${fmtTime(v.registeredAt)}</td>
           <td><span class="status-pill ${v.calledAt ? 'called' : 'waiting'}">${v.calledAt ? 'Called' : 'Waiting'}</span></td>
@@ -811,7 +846,7 @@
         <div class="table-scroll">
           <table class="visitor-table">
             <thead>
-              <tr><th>#</th><th>Name</th><th>Phone</th><th>Needs help with</th><th>Registered</th><th>Status</th></tr>
+              <tr><th>#</th><th>Name</th><th>Phone</th><th>Email</th><th>Needs help with</th><th>Registered</th><th>Status</th></tr>
             </thead>
             <tbody>${rows}</tbody>
           </table>
