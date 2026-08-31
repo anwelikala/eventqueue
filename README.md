@@ -2,12 +2,12 @@
 
 A take-a-number system for events: visitors register with their name,
 phone number, and what they need help with (picked from a dropdown, or
-"Other" to type their own); a "Now Serving" display board shows who's
-being helped now — with a sound and ripple effect on number changes —
-viewable on a shared screen or a visitor's own phone; a
-password-protected call desk calls the next number and shows a read-only
-visitor list; and a password-protected admin page manages the event,
-visitor data, and can pause new registrations with a custom message.
+"Other" to type their own); both the shared "Now Serving" display board
+and each visitor's own ticket page show live updates with sound and a
+ripple effect when the number changes; a password-protected call desk
+calls the next number and shows a read-only visitor list; and a
+password-protected admin page manages the event, visitor data, and can
+pause new registrations with a custom message.
 
 ## Run it locally
 
@@ -59,26 +59,30 @@ whatever fits your situation (e.g. "On a lunch break, back at 1pm") and
 click Save. It's remembered for next time you pause, so you don't need to
 retype it.
 
-## Sound and visual alert on the display board
+## Sound and visual alert — display board and ticket page
 
 Whenever the served number changes — including a plain **recall** of the
-same number, not just a new call — the "Now Serving" board:
-- Plays a two-tone chime.
-- Sends three amber rings rippling outward from the number, like a sonar
-  ping.
-- Pulses the number itself with a glow, as before.
+same number, not just a new call — both places react:
 
-**On sound specifically:** browsers require a tap before they'll allow
-any sound to play, so the first time the board is opened you'll see a
-small **"🔔 Tap to enable the number-change sound"** banner at the top —
-tap it once (it plays a confirmation chime and disappears) and sound
-keeps working for the rest of that browser session. This only needs
-doing once per device/browser tab you use for the board. The ripple
-effect always works regardless, with no tap needed.
+- **The shared "Now Serving" board** — plays a two-tone chime, sends
+  three amber rings rippling outward from the number, and pulses the
+  number with a glow.
+- **Each visitor's own ticket page** — a compact version of the same
+  live panel sits below the ticket (replacing the old small "Now serving"
+  text), showing the current number with the same ripple and pulse, and
+  updates the "X numbers ahead of you" count alongside it. It plays the
+  same chime too.
 
-**If you're showing this on a smart TV**, worth knowing: sound reliably
-works if you're running a laptop/mini-PC into the TV over HDMI (the
-browser genuinely runs on that device, audio comes through the HDMI
+**On sound:** the display board requires a one-time tap (the
+"🔔 Tap to enable" banner) since browsers block audio until a person
+interacts with the page. The ticket page doesn't need this — since a
+visitor only ever reaches it by clicking something first (submitting the
+registration form, or "View my number"), that click already satisfies
+the browser's requirement, so sound just works there from the start.
+
+**If you're showing the board on a smart TV**, worth knowing: sound
+reliably works if you're running a laptop/mini-PC into the TV over HDMI
+(the browser genuinely runs on that device, audio comes through the HDMI
 cable). If instead you're opening the board in the TV's own built-in
 browser, Web Audio support varies a lot between TV models and the
 "tap to enable" step may be awkward with a remote — the ripple effect is
