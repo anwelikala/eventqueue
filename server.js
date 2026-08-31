@@ -234,6 +234,10 @@ app.post('/api/call/recall', requireCall, (req, res) => {
   res.json(publicState());
 });
 
+app.get('/api/call/visitors', requireCall, (req, res) => {
+  res.json({ visitors: state.visitors });
+});
+
 /* ------------------------------------------------------------------ */
 /* Admin (password protected): visitor list, event name, reset         */
 /* ------------------------------------------------------------------ */

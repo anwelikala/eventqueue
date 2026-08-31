@@ -2,11 +2,11 @@
 
 A take-a-number system for events: visitors register with their name,
 phone number, and what they need help with (picked from a dropdown, or
-"Other" to type their own); a display board shows who's being helped now;
-a password-protected call desk calls the next number; and a
-password-protected admin page shows the full visitor list, edits the
-event title, welcome message, and service list, downloads/uploads a CSV,
-and resets the queue.
+"Other" to type their own); a "Now Serving" display board shows who's
+being helped now — with a sound alert on number changes — viewable on a
+shared screen or a visitor's own phone; a password-protected call desk
+calls the next number and shows a read-only visitor list; and a
+password-protected admin page manages the event and visitor data.
 
 ## Run it locally
 
@@ -17,18 +17,58 @@ npm install
 npm start
 ```
 
-Open **http://localhost:3000**. The home screen shows just one thing to
-visitors: **Get my number**. Staff and display options are tucked one
-click away, behind a small **"Staff & display options →"** link at the
-bottom of the home screen, which opens a separate page listing:
-- **Show queue board** — put this on the screen everyone can see.
-- **Call desk** — password-protected. Calls and recalls numbers.
+Open **http://localhost:3000**. The home screen shows visitors two things:
+**Get my number** (the main action) and **Now Serving** (a card that
+takes anyone — visitor or staff — straight to the live queue display, on
+a shared screen or their own phone). **Call desk** and **Admin** sit as
+small links in the footer at the bottom of the page, since visitors don't
+need them:
+- **Now Serving** — the live display board, viewable by anyone.
+- **Call desk** — password-protected. Calls and recalls numbers, and
+  shows a read-only visitor list.
 - **Admin** — password-protected. Visitor list, event title, welcome
   message, services list, CSV download/upload, and reset.
 
 Default passwords (change these before your event — see below):
 - Call desk: `call1234`
 - Admin: `admin1234`
+
+## Sound alert on the display board
+
+The "Now Serving" board plays a short two-tone chime whenever the number
+changes, in addition to the visual pulse. Browsers require a tap before
+they'll allow any sound to play, so the first time the board is opened
+you'll see a small **"🔔 Tap to enable the number-change sound"** banner
+at the top — tap it once (it plays a confirmation chime and disappears)
+and the sound will keep working for the rest of that browser session.
+This only needs doing once per device/browser tab you use for the board.
+
+## One number per device
+
+To stop the same visitor from accidentally registering twice (a double
+tap, a page reload, coming back to the form out of curiosity), the app
+remembers on each device that a number has already been issued, and
+shows that same ticket again instead of the registration form. This is
+remembered even if the browser is closed and reopened.
+
+This restriction is automatically lifted for **admins** — if you're
+logged into the Admin page on a device, "Get my number" on that same
+device always shows the registration form, so staff can test freely
+without being blocked by their own earlier test tickets.
+
+If the queue is reset for a new event, previously-issued device tickets
+are recognized as stale (since they no longer refer to anyone in the
+fresh queue) and the restriction clears automatically — no need to clear
+browser data between events.
+
+## Call desk visitor list
+
+The call desk page now shows a read-only table of all visitors (number,
+name, phone, service, registration time, and called/waiting status) below
+the call controls — the same information admins see, but without any of
+the editing tools (no CSV import/export, no reset, no event settings).
+This uses the call desk password only; call desk staff never need the
+admin password to see who's registered.
 
 ## ⚠️ Preventing data loss on redeploy (important — read this)
 
@@ -109,8 +149,8 @@ if someone calls the API directly rather than using the form.
 Every registration is saved to whichever store is configured (Upstash if
 set up as above, otherwise a local `state.json` file — see the warning
 above about which one survives a redeploy). Either way, this is what
-powers the admin page and is rewritten after every change (registration,
-call, reset, import).
+powers the admin and call desk pages and is rewritten after every change
+(registration, call, reset, import).
 
 There's also **`visitors.csv`** — a local, plain-text, append-only log.
 Every registration adds one line here and nothing already written is ever
@@ -159,8 +199,8 @@ variables above in Render's dashboard, and share the resulting URL.
 ## Notes
 
 - Visitor names, phone numbers, and service needs are only ever shown on
-  the admin page — the public register and display screens never expose
-  them.
+  the admin and call desk pages — the public register and display screens
+  never expose them.
 - Once you log into the call desk or admin page on a device, that device
   stays logged in (via `sessionStorage`) until its browser tab is closed —
   this is intentional, so staff aren't re-entering the password

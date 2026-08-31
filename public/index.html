@@ -108,31 +108,36 @@
     font-family:var(--font-body); font-size:18px; font-weight:800;
     cursor:pointer; letter-spacing:0.2px;
   }
-  .staff-link{
-    margin-top:36px; background:none; border:none; color:#8a8d9e;
-    font-size:13px; font-weight:600; cursor:pointer; text-decoration:underline;
-    font-family:var(--font-body);
-  }
-  .staff-link:hover{ color:var(--ink-soft); }
 
-  /* ---------- staff & display menu page ---------- */
-  .menu-title{font-size:26px;font-weight:800;margin:0 0 6px;text-align:center;}
-  .menu-sub{color:#5b5f73;font-size:14px;margin:0 0 30px;text-align:center;}
-  .menu-list{display:flex; flex-direction:column; gap:12px; width:100%; max-width:420px;}
-  .menu-item{
-    display:flex; align-items:center; gap:16px;
-    background:#fff; border:1px solid var(--line); border-radius:16px;
-    padding:18px 20px; cursor:pointer; box-shadow:var(--shadow);
-    text-align:left; width:100%;
+  .board-card{
+    margin-top:16px;
+    display:flex; align-items:center; gap:16px; text-align:left;
+    background:#fff; border:1px solid var(--line); border-radius:18px;
+    padding:18px 22px; max-width:420px; width:100%;
+    box-shadow:var(--shadow); cursor:pointer;
     font-family:var(--font-body);
+    transition:transform .15s ease;
   }
-  .menu-item:hover{transform:translateY(-2px);}
-  .menu-item .icon{
-    width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;
-    font-family:var(--font-display);font-weight:700;font-size:17px;color:#fff; flex-shrink:0;
+  .board-card:hover{transform:translateY(-2px);}
+  .board-card .icon{
+    width:42px;height:42px;border-radius:12px;background:var(--ink);
+    display:flex;align-items:center;justify-content:center; flex-shrink:0;
+    font-family:var(--font-display);font-weight:700;font-size:18px;color:var(--board-digit);
   }
-  .menu-item h3{margin:0 0 3px;font-size:15px;color:var(--ink);}
-  .menu-item p{margin:0;font-size:12px;color:#8a8d9e;}
+  .board-card h3{margin:0 0 3px;font-size:15px;color:var(--ink);}
+  .board-card p{margin:0;font-size:13px;color:#8a8d9e;}
+
+  .page-footer{
+    display:flex; justify-content:center; align-items:center; gap:14px;
+    padding:20px; border-top:1px solid var(--line);
+    font-size:13px; color:#8a8d9e;
+  }
+  .page-footer button{
+    background:none; border:none; color:#8a8d9e; font-size:13px;
+    cursor:pointer; text-decoration:underline; font-family:var(--font-body); padding:0;
+  }
+  .page-footer button:hover{ color:var(--ink-soft); }
+  .page-footer .sep{color:var(--line);}
 
   /* ---------- forms (register + password gates) ---------- */
   .form-card{
@@ -178,10 +183,6 @@
     display:inline-block;margin-top:16px;background:var(--paper-dark);
     padding:8px 16px;border-radius:100px;font-size:13px;font-weight:700;color:var(--ink-soft);
   }
-  .new-ticket-link{
-    display:block;margin-top:22px;background:none;border:none;color:var(--ink-soft);
-    font-size:14px;text-decoration:underline;cursor:pointer;font-family:var(--font-body);
-  }
 
   /* ---------- display board ---------- */
   .board-view{background:var(--ink);color:var(--board-digit);flex:1;display:flex;flex-direction:column;}
@@ -205,6 +206,13 @@
   }
   .board-sub{font-size:15px;color:rgba(247,244,236,0.6);}
   .board-footer{text-align:center;padding:18px;font-size:12px;color:rgba(247,244,236,0.4);letter-spacing:1px;text-transform:uppercase;}
+  .sound-banner{
+    display:block; width:100%; border:none; cursor:pointer;
+    background:var(--amber); color:var(--ink);
+    font-family:var(--font-body); font-weight:700; font-size:14px;
+    padding:12px; text-align:center;
+  }
+  .sound-banner:hover{ filter:brightness(1.05); }
 
   /* ---------- call desk + admin panels ---------- */
   .panel-grid{
@@ -312,6 +320,27 @@
     return digitCount >= 7 && digitCount <= 15;
   }
 
+  // One ticket per device: remembered in localStorage (persists across
+  // browser restarts, unlike sessionStorage) so reloading or revisiting
+  // doesn't let the same visitor pull a second number. Admins (logged into
+  // the admin page on this device) are exempt, so staff can test freely.
+  const DEVICE_TICKET_KEY = 'queueDeviceTicket';
+  function getStoredTicket(){
+    try{
+      const raw = localStorage.getItem(DEVICE_TICKET_KEY);
+      return raw ? JSON.parse(raw) : null;
+    }catch(e){ return null; }
+  }
+  function storeTicket(ticket){
+    try{ localStorage.setItem(DEVICE_TICKET_KEY, JSON.stringify(ticket)); }catch(e){ /* ignore */ }
+  }
+  function clearStoredTicket(){
+    try{ localStorage.removeItem(DEVICE_TICKET_KEY); }catch(e){ /* ignore */ }
+  }
+  function isAdminLoggedIn(){
+    return !!sessionStorage.getItem('adminPassword');
+  }
+
   async function apiCall(path, opts){
     try{
       const res = await fetch(path, opts);
@@ -345,6 +374,11 @@
     },
     callRecall: async () => {
       const res = await apiCall('/api/call/recall', { method:'POST', headers: authHeaders('call') });
+      if(res.status === 401){ handleAuthFailure('call'); throw new Error('unauthorized'); }
+      return res.json();
+    },
+    callVisitors: async () => {
+      const res = await apiCall('/api/call/visitors', { headers: authHeaders('call') });
       if(res.status === 401){ handleAuthFailure('call'); throw new Error('unauthorized'); }
       return res.json();
     },
@@ -446,7 +480,7 @@
     `;
   }
 
-  /* ---------------- LANDING (hero) ---------------- */
+  /* ---------------- LANDING (hero + board card + footer) ---------------- */
   function renderLanding(){
     app.innerHTML = `
       ${topline(false)}
@@ -461,52 +495,44 @@
           <button class="hero-btn" id="hero-register-btn">Get my number</button>
         </div>
 
-        <button class="staff-link" onclick="__app.goto('menu')">Staff &amp; display options →</button>
+        <button class="board-card" onclick="__app.goto('display')">
+          <div class="icon">▤</div>
+          <div>
+            <h3>Now Serving</h3>
+            <p>See which number is being helped right now.</p>
+          </div>
+        </button>
+      </div>
+      <div class="page-footer">
+        <button onclick="__app.goto(sessionStorage.getItem('callPassword') ? 'call-desk' : 'call-login')">Call desk</button>
+        <span class="sep">|</span>
+        <button onclick="__app.goto(sessionStorage.getItem('adminPassword') ? 'admin-panel' : 'admin-login')">Admin</button>
       </div>
     `;
     document.getElementById('hero-register-btn').onclick = openRegister;
-  }
-
-  /* ---------------- STAFF & DISPLAY MENU ---------------- */
-  function renderMenu(){
-    app.innerHTML = `
-      ${topline(true)}
-      <div class="center-col">
-        <h2 class="menu-title">Staff &amp; display options</h2>
-        <p class="menu-sub">Not for visitors — these are for running the event.</p>
-        <div class="menu-list">
-          <button class="menu-item" onclick="__app.goto('display')">
-            <div class="icon" style="background:var(--ink);">▤</div>
-            <div>
-              <h3>Show queue board</h3>
-              <p>Put this on the screen everyone can see.</p>
-            </div>
-          </button>
-          <button class="menu-item" onclick="__app.goto(sessionStorage.getItem('callPassword') ? 'call-desk' : 'call-login')">
-            <div class="icon" style="background:var(--teal);">☎</div>
-            <div>
-              <h3>Call desk</h3>
-              <p>Call the next number. Password required.</p>
-            </div>
-          </button>
-          <button class="menu-item" onclick="__app.goto(sessionStorage.getItem('adminPassword') ? 'admin-panel' : 'admin-login')">
-            <div class="icon" style="background:var(--rust);">⚙</div>
-            <div>
-              <h3>Admin</h3>
-              <p>Visitor list, event name, reset. Password required.</p>
-            </div>
-          </button>
-        </div>
-      </div>
-    `;
   }
 
 
   /* ---------------- REGISTER ---------------- */
   async function openRegister(){
     stopPolling();
-    view = 'register';
     try{ state = await api.getState(); }catch(e){ /* fall back to cached state */ }
+
+    const stored = getStoredTicket();
+    const storedStillValid = stored && Number.isInteger(stored.number) && stored.number <= state.lastIssued;
+    if(storedStillValid && !isAdminLoggedIn()){
+      myTicket = stored.number;
+      renderTicket();
+      startPolling(async ()=>{ state = await api.getState(); updateTicketAheadCount(); });
+      return;
+    }
+    if(stored && !storedStillValid){
+      // The queue was reset since this device's ticket was issued — it no
+      // longer refers to anyone in the current queue, so let them register again.
+      clearStoredTicket();
+    }
+
+    view = 'register';
     if(view === 'register') renderRegister();
   }
   function renderRegister(){
@@ -584,6 +610,7 @@
         }
         myTicket = result.number;
         state = result.state;
+        storeTicket({ number: myTicket });
         renderTicket();
         startPolling(async ()=>{ state = await api.getState(); updateTicketAheadCount(); });
       }catch(err){
@@ -612,7 +639,13 @@
           <div style="text-align:center;">
             <div class="ahead-pill" id="ahead-pill">${ahead === 0 ? "You're next" : ahead + ' number' + (ahead===1?'':'s') + ' ahead of you'}</div>
           </div>
-          <button class="new-ticket-link" onclick="__app.goto('display')">Show queue board →</button>
+          <button class="board-card" onclick="__app.goto('display')">
+            <div class="icon">▤</div>
+            <div>
+              <h3>Now Serving</h3>
+              <p>See which number is being helped right now.</p>
+            </div>
+          </button>
         </div>
       </div>
     `;
@@ -627,11 +660,43 @@
     pillEl.textContent = ahead === 0 ? "You're next" : ahead + ' number' + (ahead===1?'':'s') + ' ahead of you';
   }
 
+  /* ---------------- SOUND (display board) ---------------- */
+  let audioCtx = null;
+  let soundEnabled = false;
+  function enableSound(){
+    try{
+      if(!audioCtx){ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+      if(audioCtx.state === 'suspended'){ audioCtx.resume(); }
+      soundEnabled = true;
+    }catch(e){ /* Web Audio unavailable — sound just won't play */ }
+  }
+  function playChime(){
+    if(!soundEnabled || !audioCtx) return;
+    try{
+      const now = audioCtx.currentTime;
+      [880, 1108.73].forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        const start = now + i * 0.16;
+        gain.gain.setValueAtTime(0, start);
+        gain.gain.linearRampToValueAtTime(0.3, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.35);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(start);
+        osc.stop(start + 0.4);
+      });
+    }catch(e){ /* ignore playback errors */ }
+  }
+
   /* ---------------- DISPLAY ---------------- */
   function renderDisplay(){
     app.innerHTML = `
       <div class="board-view">
         ${topline(true)}
+        ${!soundEnabled ? `<button id="enable-sound-btn" class="sound-banner">🔔 Tap to enable the number-change sound</button>` : ''}
         <div class="board-center">
           <div class="serving-label">Now serving</div>
           <div class="serving-number" id="serving-num">${String(state.nowServing).padStart(3,'0')}</div>
@@ -640,6 +705,14 @@
         <div class="board-footer">${escapeHtml(state.title)}</div>
       </div>
     `;
+    const soundBtn = document.getElementById('enable-sound-btn');
+    if(soundBtn){
+      soundBtn.onclick = ()=>{
+        enableSound();
+        playChime();
+        soundBtn.remove();
+      };
+    }
     lastServingSeen = state.nowServing;
     startPolling(async ()=>{
       state = await api.getState();
@@ -652,6 +725,7 @@
         numEl.classList.remove('pulse');
         void numEl.offsetWidth;
         numEl.classList.add('pulse');
+        playChime();
       }
       if(subEl){ subEl.textContent = state.lastIssued > state.nowServing ? (state.lastIssued - state.nowServing) + ' waiting' : 'No one waiting'; }
     });
@@ -720,6 +794,10 @@
             <button class="ghost-btn" id="recall-btn">Recall current number</button>
           </div>
         </div>
+        <div class="panel wide-panel" style="margin-top:20px;">
+          <h3>Visitors</h3>
+          <div id="call-visitor-table-wrap"></div>
+        </div>
       </div>
     `;
     document.getElementById('call-next-btn').onclick = async ()=>{
@@ -746,6 +824,10 @@
         if(waitingEl) waitingEl.textContent = waitingNow;
         if(btn) btn.disabled = waitingNow <= 0;
       }catch(e){ /* handled by auth/offline handlers */ }
+      try{
+        const data = await api.callVisitors();
+        renderVisitorTable('call-visitor-table-wrap', data.visitors);
+      }catch(e){ /* handled */ }
     }
     refreshCallDesk();
     startPolling(refreshCallDesk);
@@ -933,45 +1015,47 @@
     async function loadVisitors(){
       try{
         const data = await api.adminVisitors();
-        renderVisitorTable(data.visitors);
+        renderVisitorTable('visitor-table-wrap', data.visitors);
       }catch(e){ /* handled */ }
-    }
-    function renderVisitorTable(visitors){
-      const wrap = document.getElementById('visitor-table-wrap');
-      if(!wrap) return;
-      if(!visitors || visitors.length === 0){
-        wrap.innerHTML = `<p class="empty-note">No one has registered yet.</p>`;
-        return;
-      }
-      const rows = visitors.slice().reverse().map(v => `
-        <tr>
-          <td>${String(v.number).padStart(3,'0')}</td>
-          <td>${escapeHtml(v.name || '—')}</td>
-          <td>${escapeHtml(v.phone || '—')}</td>
-          <td>${escapeHtml(v.service || '—')}</td>
-          <td>${fmtTime(v.registeredAt)}</td>
-          <td><span class="status-pill ${v.calledAt ? 'called' : 'waiting'}">${v.calledAt ? 'Called' : 'Waiting'}</span></td>
-        </tr>
-      `).join('');
-      wrap.innerHTML = `
-        <div class="table-scroll">
-          <table class="visitor-table">
-            <thead>
-              <tr><th>#</th><th>Name</th><th>Phone</th><th>Needs help with</th><th>Registered</th><th>Status</th></tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-      `;
     }
 
     loadVisitors();
     startPolling(loadVisitors);
   }
 
+  // Shared read-only visitor table renderer, used by both the admin page
+  // and the call desk's read-only visitor list.
+  function renderVisitorTable(containerId, visitors){
+    const wrap = document.getElementById(containerId);
+    if(!wrap) return;
+    if(!visitors || visitors.length === 0){
+      wrap.innerHTML = `<p class="empty-note">No one has registered yet.</p>`;
+      return;
+    }
+    const rows = visitors.slice().reverse().map(v => `
+      <tr>
+        <td>${String(v.number).padStart(3,'0')}</td>
+        <td>${escapeHtml(v.name || '—')}</td>
+        <td>${escapeHtml(v.phone || '—')}</td>
+        <td>${escapeHtml(v.service || '—')}</td>
+        <td>${fmtTime(v.registeredAt)}</td>
+        <td><span class="status-pill ${v.calledAt ? 'called' : 'waiting'}">${v.calledAt ? 'Called' : 'Waiting'}</span></td>
+      </tr>
+    `).join('');
+    wrap.innerHTML = `
+      <div class="table-scroll">
+        <table class="visitor-table">
+          <thead>
+            <tr><th>#</th><th>Name</th><th>Phone</th><th>Needs help with</th><th>Registered</th><th>Status</th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
+  }
+
   function render(){
     if(view === 'landing') renderLanding();
-    else if(view === 'menu') renderMenu();
     else if(view === 'register') renderRegister();
     else if(view === 'display') renderDisplay();
     else if(view === 'call-login') renderCallLogin();
