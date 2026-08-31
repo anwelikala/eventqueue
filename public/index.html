@@ -37,21 +37,25 @@
   /* ---------- shared bits ---------- */
   .topline{
     display:flex;align-items:center;justify-content:space-between;
-    padding:18px 24px;
+    padding:18px 24px; gap:12px;
     border-bottom:1px solid var(--line);
   }
-  .brand{display:flex;align-items:baseline;gap:10px;}
+  .brand{display:flex;align-items:baseline;gap:10px;min-width:0;}
   .brand .mark{
     font-family:var(--font-display);font-weight:700;
     background:var(--ink);color:var(--board-digit);
     padding:4px 8px;border-radius:4px;font-size:13px;letter-spacing:1px;
+    flex-shrink:0;
   }
-  .brand .title{font-weight:700;font-size:16px;}
+  .brand .title{
+    font-weight:700;font-size:16px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;
+  }
   .home-link{
     font-size:13px;color:var(--ink-soft);text-decoration:none;
     border:1px solid var(--line);padding:8px 14px;border-radius:100px;
     font-weight:600;cursor:pointer;background:transparent;
-    font-family:var(--font-body);
+    font-family:var(--font-body);flex-shrink:0;
   }
   .home-link:hover{border-color:var(--ink);}
   .center-col{
@@ -855,7 +859,7 @@
             <p style="font-size:13px;color:#8a8d9e;margin:6px 0 14px;">Event title shows in the header on every screen. The welcome message shows under "Welcome" on the home screen.</p>
             <div class="field-group">
               <label class="field-label" for="title-input">Event title</label>
-              <input class="text-input" id="title-input" value="${escapeHtml(state.title)}" maxlength="60">
+              <input class="text-input" id="title-input" value="${escapeHtml(state.title)}" maxlength="100">
               <div class="save-row">
                 <button class="ghost-btn" id="save-title-btn" style="flex:1;">Save title</button>
               </div>

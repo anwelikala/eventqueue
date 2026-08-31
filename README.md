@@ -33,6 +33,15 @@ Default passwords (change these before your event — see below):
 - Call desk: `call1234`
 - Admin: `admin1234`
 
+## Event title and welcome message length
+
+The **Event title** (shown in the small header bar on every screen) can
+be up to 100 characters. The **Welcome message** (shown under "Welcome"
+on the home screen) can be up to 200 characters. Both are enforced in the
+input box and on the server, so pasting a longer value just gets trimmed
+to the limit rather than rejected. A long title truncates with `…` in the
+header bar on narrow screens rather than breaking the layout.
+
 ## Sound alert on the display board
 
 The "Now Serving" board plays a short two-tone chime whenever the number

@@ -410,7 +410,7 @@ app.post('/api/admin/import', requireAdmin, (req, res) => {
 });
 
 app.post('/api/admin/title', requireAdmin, (req, res) => {
-  const title = ((req.body && req.body.title) || '').toString().trim().slice(0, 60);
+  const title = ((req.body && req.body.title) || '').toString().trim().slice(0, 100);
   if (title) {
     state.title = title;
     persist();
