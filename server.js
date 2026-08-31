@@ -180,6 +180,15 @@ function isValidPhone(phone) {
   return digitCount >= 7 && digitCount <= 15;
 }
 
+function isValidName(name) {
+  const trimmed = name.trim();
+  if (trimmed.length < 2) return false;
+  if (!/^[\p{L}][\p{L}\s'’\-.]*$/u.test(trimmed)) return false;
+  const lettersOnly = trimmed.replace(/[^\p{L}]/gu, '').toLowerCase();
+  if (lettersOnly.length > 0 && /^(.)\1+$/u.test(lettersOnly)) return false;
+  return true;
+}
+
 app.post('/api/register', (req, res) => {
   if (state.registrationPaused) {
     return res.status(403).json({ error: state.pausedMessage || 'Registration is currently paused.' });
@@ -191,6 +200,9 @@ app.post('/api/register', (req, res) => {
 
   if (!name || !service) {
     return res.status(400).json({ error: 'Name and service are required.' });
+  }
+  if (!isValidName(name)) {
+    return res.status(400).json({ error: 'Enter your name using letters only.' });
   }
   if (!isValidPhone(phone)) {
     return res.status(400).json({ error: 'Enter a valid phone number (digits only, at least 7 digits).' });

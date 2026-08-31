@@ -36,6 +36,28 @@ Default passwords (change these before your event — see below):
 - Call desk: `call1234`
 - Admin: `admin1234`
 
+## Name and phone number validation
+
+The registration form requires:
+
+- **Name**: at least 2 characters, letters only (any language/script, so
+  accented and non-Latin names work fine), plus spaces, hyphens,
+  apostrophes, and periods for things like "Anne-Marie O'Connor" or
+  "J. Fernando". Digits, symbols, and a single letter repeated the whole
+  way through (like "aaaaaa") are rejected. Worth knowing: this catches
+  obviously invalid input (numbers, symbols, keyboard-mashing patterns
+  like "aaaa") but can't perfectly detect every possible fake name — a
+  short plausible-looking string of real letters can still slip through,
+  since there's no dictionary check involved.
+- **Phone**: digits, spaces, `+`, `-`, and `()` are allowed (so
+  international formats like `+46 70 123 45 67` work fine), with at
+  least 7 and at most 15 digits. Letters or too few/too many digits are
+  rejected.
+
+Both are checked in the browser (with an inline error message) and again
+on the server, so the rules hold even if someone calls the API directly
+rather than using the form.
+
 ## Pausing new registrations
 
 On the admin page, under "Queue overview," there's a **Pause
@@ -73,6 +95,9 @@ same number, not just a new call — both places react:
   text), showing the current number with the same ripple and pulse, and
   updates the "X numbers ahead of you" count alongside it. It plays the
   same chime too, and reacts to a recall exactly like the board does.
+  Since this panel already shows the live number directly, the ticket
+  page no longer has a separate link down to the full board — that link
+  now only appears on the home page.
 
 **On sound:** the display board requires a one-time tap (the
 "🔔 Tap to enable" banner) since browsers block audio until a person
@@ -117,14 +142,14 @@ are recognized as stale (since they no longer refer to anyone in the
 fresh queue) and the restriction clears automatically — no need to clear
 browser data between events.
 
-## Call desk visitor list
+## Visitor list (admin and call desk)
 
-The call desk page shows a read-only table of all visitors (number, name,
-phone, service, registration time, and called/waiting status) below the
-call controls — the same information admins see, but without any of the
-editing tools (no CSV import/export, no reset, no event settings). This
-uses the call desk password only; call desk staff never need the admin
-password to see who's registered.
+Both the admin page and the call desk page show a table of visitors with
+their number, name, phone, service, when they registered, when they were
+called (blank if still waiting), and a Waiting/Called status badge. The
+call desk version is read-only — no editing tools, just the information
+— and uses the call desk password only, so staff there never need the
+admin password just to see who's registered.
 
 ## ⚠️ Preventing data loss on redeploy (important — read this)
 
@@ -190,15 +215,6 @@ the numbers in your uploaded file as the new source of truth, so if you
 delete the highest-numbered row rather than just editing it, the *next*
 person who registers could be issued a number that collides with someone
 still in the list. Renumber rather than delete if you're not sure.
-
-## Phone number validation
-
-The registration form requires a plausible phone number: digits, spaces,
-`+`, `-`, and `()` are allowed (so international formats like
-`+46 70 123 45 67` work fine), with at least 7 and at most 15 digits.
-Letters or too few/too many digits are rejected with an inline message.
-This is checked both in the browser and on the server, so it holds even
-if someone calls the API directly rather than using the form.
 
 ## How visitor data is stored
 

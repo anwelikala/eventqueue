@@ -284,7 +284,7 @@
 
   /* ---------- visitor table ---------- */
   .table-scroll{overflow-x:auto;margin-top:18px;}
-  table.visitor-table{width:100%;border-collapse:collapse;font-size:14px;min-width:560px;}
+  table.visitor-table{width:100%;border-collapse:collapse;font-size:14px;min-width:660px;}
   table.visitor-table th{
     text-align:left;padding:10px 10px;font-size:11px;text-transform:uppercase;
     letter-spacing:0.5px;color:#8a8d9e;border-bottom:1.5px solid var(--line);
@@ -371,6 +371,18 @@
     if(!/^[0-9+\-()\s]+$/.test(phone)) return false;
     const digitCount = (phone.match(/\d/g) || []).length;
     return digitCount >= 7 && digitCount <= 15;
+  }
+  function isValidName(name){
+    const trimmed = name.trim();
+    if(trimmed.length < 2) return false;
+    // Letters (any language/script), spaces, apostrophes, hyphens, periods —
+    // covers names like "Anne-Marie O'Connor" or "J. Fernando" without
+    // allowing digits or symbol strings.
+    if(!/^[\p{L}][\p{L}\s'’\-.]*$/u.test(trimmed)) return false;
+    // Reject a single letter repeated the whole way through (e.g. "aaaa").
+    const lettersOnly = trimmed.replace(/[^\p{L}]/gu, '').toLowerCase();
+    if(lettersOnly.length > 0 && /^(.)\1+$/u.test(lettersOnly)) return false;
+    return true;
   }
 
   // One ticket per device: remembered in localStorage (persists across
@@ -706,6 +718,11 @@
         errEl.classList.add('show');
         return;
       }
+      if(!isValidName(name)){
+        errEl.textContent = 'Enter your name using letters only.';
+        errEl.classList.add('show');
+        return;
+      }
       if(!isValidPhone(phone)){
         errEl.textContent = 'Enter a valid phone number (digits only, at least 7 digits).';
         errEl.classList.add('show');
@@ -761,13 +778,6 @@
           <div style="text-align:center;">
             <div class="ahead-pill" id="ahead-pill"></div>
           </div>
-          <button class="board-card" onclick="__app.goto('display')">
-            <div class="icon">▤</div>
-            <div>
-              <h3>Now Serving</h3>
-              <p>See which number is being helped right now.</p>
-            </div>
-          </button>
         </div>
       </div>
     `;
@@ -1238,6 +1248,7 @@
         <td>${escapeHtml(v.phone || '—')}</td>
         <td>${escapeHtml(v.service || '—')}</td>
         <td>${fmtTime(v.registeredAt)}</td>
+        <td>${fmtTime(v.calledAt)}</td>
         <td><span class="status-pill ${v.calledAt ? 'called' : 'waiting'}">${v.calledAt ? 'Called' : 'Waiting'}</span></td>
       </tr>
     `).join('');
@@ -1245,7 +1256,7 @@
       <div class="table-scroll">
         <table class="visitor-table">
           <thead>
-            <tr><th>#</th><th>Name</th><th>Phone</th><th>Needs help with</th><th>Registered</th><th>Status</th></tr>
+            <tr><th>#</th><th>Name</th><th>Phone</th><th>Needs help with</th><th>Registered</th><th>Called</th><th>Status</th></tr>
           </thead>
           <tbody>${rows}</tbody>
         </table>
