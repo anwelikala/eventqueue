@@ -87,6 +87,9 @@ const DEFAULT_STATE = {
   ],
   lastIssued: 0,
   nowServing: 0,
+  lastRecallAt: null,
+  registrationPaused: false,
+  pausedMessage: "We're not issuing new numbers right now. Please check back shortly.",
   updatedAt: Date.now(),
   visitors: [] // { number, name, phone, service, registeredAt, calledAt }
 };
@@ -145,6 +148,9 @@ function publicState() {
     services: state.services,
     lastIssued: state.lastIssued,
     nowServing: state.nowServing,
+    lastRecallAt: state.lastRecallAt,
+    registrationPaused: state.registrationPaused,
+    pausedMessage: state.pausedMessage,
     updatedAt: state.updatedAt
   };
 }
@@ -175,6 +181,10 @@ function isValidPhone(phone) {
 }
 
 app.post('/api/register', (req, res) => {
+  if (state.registrationPaused) {
+    return res.status(403).json({ error: state.pausedMessage || 'Registration is currently paused.' });
+  }
+
   const name = ((req.body && req.body.name) || '').toString().trim().slice(0, 80);
   const phone = ((req.body && req.body.phone) || '').toString().trim().slice(0, 40);
   const service = ((req.body && req.body.service) || '').toString().trim().slice(0, 120);
@@ -229,6 +239,7 @@ app.post('/api/call/next', requireCall, (req, res) => {
 });
 
 app.post('/api/call/recall', requireCall, (req, res) => {
+  state.lastRecallAt = Date.now();
   state.updatedAt = Date.now();
   persist();
   res.json(publicState());
@@ -422,6 +433,22 @@ app.post('/api/admin/welcome', requireAdmin, (req, res) => {
   const message = ((req.body && req.body.message) || '').toString().trim().slice(0, 200);
   if (message) {
     state.welcomeMessage = message;
+    persist();
+  }
+  res.json(publicState());
+});
+
+app.post('/api/admin/pause', requireAdmin, (req, res) => {
+  state.registrationPaused = !!(req.body && req.body.paused);
+  state.updatedAt = Date.now();
+  persist();
+  res.json(publicState());
+});
+
+app.post('/api/admin/pause-message', requireAdmin, (req, res) => {
+  const message = ((req.body && req.body.message) || '').toString().trim().slice(0, 200);
+  if (message) {
+    state.pausedMessage = message;
     persist();
   }
   res.json(publicState());

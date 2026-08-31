@@ -195,11 +195,12 @@
   .board-view .brand .title{color:var(--board-digit);}
   .board-view .home-link{color:var(--board-digit);border-color:rgba(247,244,236,0.35);}
   .board-view .home-link:hover{border-color:var(--board-digit);}
-  .board-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;}
-  .serving-label{font-size:clamp(16px,2.6vw,22px);letter-spacing:6px;text-transform:uppercase;color:var(--amber);font-weight:700;}
+  .board-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;position:relative;}
+  .serving-label{font-size:clamp(16px,2.6vw,22px);letter-spacing:6px;text-transform:uppercase;color:var(--amber);font-weight:700;position:relative;z-index:2;}
   .serving-number{
     font-family:var(--font-display);font-weight:700;
     font-size:clamp(120px,26vw,300px);line-height:1;color:var(--board-digit);
+    position:relative;z-index:2;
   }
   .serving-number.pulse{animation:pulse 900ms ease;}
   @media (prefers-reduced-motion: reduce){ .serving-number.pulse{animation:none;} }
@@ -208,18 +209,20 @@
     35%{ transform:scale(1.05); text-shadow: 0 0 60px rgba(216,145,46,0.55); }
     100%{ transform:scale(1); text-shadow: 0 0 0 rgba(216,145,46,0); }
   }
-  .board-flash{
-    position:absolute; inset:0; background:var(--amber);
-    opacity:0; pointer-events:none; z-index:5;
+  .ripple-ring{
+    position:absolute; top:50%; left:50%; width:120px; height:120px;
+    border:4px solid var(--amber); border-radius:50%;
+    transform:translate(-50%,-50%) scale(0.3); opacity:0; pointer-events:none; z-index:1;
   }
-  .board-flash.flash{ animation:boardFlash 900ms ease; }
-  @media (prefers-reduced-motion: reduce){ .board-flash.flash{ animation:none; } }
-  @keyframes boardFlash{
-    0%{ opacity:0; }
-    12%{ opacity:0.55; }
-    100%{ opacity:0; }
+  .ripple-ring.go{ animation:rippleGo 1100ms ease-out; }
+  .ripple-ring.go.r2{ animation-delay:150ms; }
+  .ripple-ring.go.r3{ animation-delay:300ms; }
+  @media (prefers-reduced-motion: reduce){ .ripple-ring.go{ animation:none; } }
+  @keyframes rippleGo{
+    0%{ transform:translate(-50%,-50%) scale(0.3); opacity:0.8; }
+    100%{ transform:translate(-50%,-50%) scale(5.5); opacity:0; }
   }
-  .board-sub{font-size:15px;color:rgba(247,244,236,0.6);}
+  .board-sub{font-size:15px;color:rgba(247,244,236,0.6);position:relative;z-index:2;}
   .board-footer{text-align:center;padding:18px;font-size:12px;color:rgba(247,244,236,0.4);letter-spacing:1px;text-transform:uppercase;}
   .sound-banner{
     display:block; width:100%; border:none; cursor:pointer;
@@ -261,6 +264,8 @@
   .status-pill{display:inline-block;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;}
   .status-pill.waiting{background:var(--paper-dark);color:var(--ink-soft);}
   .status-pill.called{background:#DCEEE8;color:var(--teal);}
+  .status-pill.active{background:#DCEEE8;color:var(--teal);}
+  .status-pill.paused{background:#F5DCC9;color:var(--rust);}
   .empty-note{color:#8a8d9e;font-size:14px;margin-top:18px;text-align:center;}
 
   /* ---------- service chips (admin) ---------- */
@@ -305,6 +310,7 @@
   let myTicket = null;
   let pollTimer = null;
   let lastServingSeen = null;
+  let lastRecallSeen = null;
 
   const app = document.getElementById('app');
   const toastEl = document.getElementById('toast');
@@ -424,6 +430,24 @@
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
       return res.json();
     },
+    adminSetPause: async (paused) => {
+      const res = await apiCall('/api/admin/pause', {
+        method:'POST',
+        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
+        body: JSON.stringify({ paused })
+      });
+      if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
+      return res.json();
+    },
+    adminSetPauseMessage: async (message) => {
+      const res = await apiCall('/api/admin/pause-message', {
+        method:'POST',
+        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
+        body: JSON.stringify({ message })
+      });
+      if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
+      return res.json();
+    },
     adminAddService: async (service) => {
       const res = await apiCall('/api/admin/services/add', {
         method:'POST',
@@ -497,6 +521,7 @@
 
   /* ---------------- LANDING (hero + board card + footer) ---------------- */
   function renderLanding(){
+    const paused = state.registrationPaused;
     app.innerHTML = `
       ${topline(false)}
       <div class="center-col">
@@ -504,10 +529,16 @@
         <p class="landing-sub">${escapeHtml(state.welcomeMessage || "Choose what you're here to do.")}</p>
 
         <div class="hero-card">
-          <div class="hero-icon">#</div>
-          <h2>Get my number</h2>
-          <p>Register and receive a ticket number. You'll be helped in order.</p>
-          <button class="hero-btn" id="hero-register-btn">Get my number</button>
+          ${paused ? `
+            <div class="hero-icon" style="background:var(--rust);">⏸</div>
+            <h2>Registration paused</h2>
+            <p>${escapeHtml(state.pausedMessage || "We're not issuing new numbers right now. Please check back shortly.")}</p>
+          ` : `
+            <div class="hero-icon">#</div>
+            <h2>Get my number</h2>
+            <p>Register and receive a ticket number. You'll be helped in order.</p>
+            <button class="hero-btn" id="hero-register-btn">Get my number</button>
+          `}
         </div>
 
         <button class="board-card" onclick="__app.goto('display')">
@@ -524,7 +555,9 @@
         <button onclick="__app.goto(sessionStorage.getItem('adminPassword') ? 'admin-panel' : 'admin-login')">Admin</button>
       </div>
     `;
-    document.getElementById('hero-register-btn').onclick = openRegister;
+    if(!paused){
+      document.getElementById('hero-register-btn').onclick = openRegister;
+    }
   }
 
 
@@ -547,8 +580,24 @@
       clearStoredTicket();
     }
 
+    if(state.registrationPaused){
+      renderPaused();
+      return;
+    }
+
     view = 'register';
     if(view === 'register') renderRegister();
+  }
+  function renderPaused(){
+    app.innerHTML = `
+      ${topline(true)}
+      <div class="center-col">
+        <div class="form-card" style="text-align:center;">
+          <h2>Registration paused</h2>
+          <p class="intro">${escapeHtml(state.pausedMessage || "We're not issuing new numbers right now. Please check back shortly.")}</p>
+        </div>
+      </div>
+    `;
   }
   function renderRegister(){
     app.innerHTML = `
@@ -696,24 +745,35 @@
         osc.frequency.value = freq;
         const start = now + i * 0.16;
         gain.gain.setValueAtTime(0, start);
-        gain.gain.linearRampToValueAtTime(0.3, start + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.35);
+        gain.gain.linearRampToValueAtTime(0.9, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.4);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start(start);
-        osc.stop(start + 0.4);
+        osc.stop(start + 0.45);
       });
     }catch(e){ /* ignore playback errors */ }
+  }
+  function fireRipple(){
+    ['ring1','ring2','ring3'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el) return;
+      el.classList.remove('go');
+      void el.offsetWidth;
+      el.classList.add('go');
+    });
   }
 
   /* ---------------- DISPLAY ---------------- */
   function renderDisplay(){
     app.innerHTML = `
       <div class="board-view">
-        <div class="board-flash" id="board-flash"></div>
         ${topline(true)}
         ${!soundEnabled ? `<button id="enable-sound-btn" class="sound-banner">🔔 Tap to enable the number-change sound</button>` : ''}
         <div class="board-center">
+          <div class="ripple-ring" id="ring1"></div>
+          <div class="ripple-ring r2" id="ring2"></div>
+          <div class="ripple-ring r3" id="ring3"></div>
           <div class="serving-label">Now serving</div>
           <div class="serving-number" id="serving-num">${String(state.nowServing).padStart(3,'0')}</div>
           <div class="board-sub" id="board-sub">${state.lastIssued > state.nowServing ? (state.lastIssued - state.nowServing) + ' waiting' : 'No one waiting'}</div>
@@ -730,23 +790,26 @@
       };
     }
     lastServingSeen = state.nowServing;
+    lastRecallSeen = state.lastRecallAt || null;
     startPolling(async ()=>{
       state = await api.getState();
       const numEl = document.getElementById('serving-num');
       const subEl = document.getElementById('board-sub');
-      const flashEl = document.getElementById('board-flash');
       if(!numEl) return;
-      if(state.nowServing !== lastServingSeen){
+
+      const servingChanged = state.nowServing !== lastServingSeen;
+      const recalled = state.lastRecallAt && state.lastRecallAt !== lastRecallSeen;
+
+      if(servingChanged){
         lastServingSeen = state.nowServing;
         numEl.textContent = String(state.nowServing).padStart(3,'0');
         numEl.classList.remove('pulse');
         void numEl.offsetWidth;
         numEl.classList.add('pulse');
-        if(flashEl){
-          flashEl.classList.remove('flash');
-          void flashEl.offsetWidth;
-          flashEl.classList.add('flash');
-        }
+      }
+      if(recalled){ lastRecallSeen = state.lastRecallAt; }
+      if(servingChanged || recalled){
+        fireRipple();
         playChime();
       }
       if(subEl){ subEl.textContent = state.lastIssued > state.nowServing ? (state.lastIssued - state.nowServing) + ' waiting' : 'No one waiting'; }
@@ -867,6 +930,18 @@
               <div class="stat"><div class="num">${String(state.nowServing).padStart(3,'0')}</div><div class="lbl">Now serving</div></div>
               <div class="stat"><div class="num">${String(state.lastIssued).padStart(3,'0')}</div><div class="lbl">Last issued</div></div>
             </div>
+            <div class="field-group" style="margin-top:22px;">
+              <label class="field-label">Visitor registration</label>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                <span class="status-pill ${state.registrationPaused ? 'paused' : 'active'}" id="pause-status-badge">${state.registrationPaused ? 'Paused' : 'Active'}</span>
+                <button class="ghost-btn" id="pause-toggle-btn" style="flex:1;">${state.registrationPaused ? 'Resume registration' : 'Pause registration'}</button>
+              </div>
+              <label class="field-label" for="pause-message-input">Message shown to visitors while paused</label>
+              <input class="text-input" id="pause-message-input" value="${escapeHtml(state.pausedMessage || '')}" maxlength="200">
+              <div class="save-row">
+                <button class="ghost-btn" id="save-pause-message-btn" style="flex:1;">Save message</button>
+              </div>
+            </div>
             <div class="danger-zone">
               <p>Starting a new event? This clears all numbers and visitor details.</p>
               <button class="rust-btn" id="reset-btn">Reset queue</button>
@@ -942,6 +1017,21 @@
       try{
         state = await api.adminSetWelcome(val);
         showToast('Welcome message saved');
+      }catch(e){ /* handled */ }
+    };
+    document.getElementById('pause-toggle-btn').onclick = async ()=>{
+      try{
+        state = await api.adminSetPause(!state.registrationPaused);
+        showToast(state.registrationPaused ? 'Registration paused' : 'Registration resumed');
+        renderAdminPanel();
+      }catch(e){ /* handled */ }
+    };
+    document.getElementById('save-pause-message-btn').onclick = async ()=>{
+      const val = document.getElementById('pause-message-input').value.trim();
+      if(!val) return;
+      try{
+        state = await api.adminSetPauseMessage(val);
+        showToast('Paused message saved');
       }catch(e){ /* handled */ }
     };
 

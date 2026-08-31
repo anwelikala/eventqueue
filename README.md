@@ -3,10 +3,11 @@
 A take-a-number system for events: visitors register with their name,
 phone number, and what they need help with (picked from a dropdown, or
 "Other" to type their own); a "Now Serving" display board shows who's
-being helped now — with a sound and full-screen flash on number changes —
-viewable on a shared screen or a visitor's own phone; a password-protected
-call desk calls the next number and shows a read-only visitor list; and a
-password-protected admin page manages the event and visitor data.
+being helped now — with a sound and ripple effect on number changes —
+viewable on a shared screen or a visitor's own phone; a
+password-protected call desk calls the next number and shows a read-only
+visitor list; and a password-protected admin page manages the event,
+visitor data, and can pause new registrations with a custom message.
 
 ## Run it locally
 
@@ -27,11 +28,58 @@ need them:
 - **Call desk** — password-protected. Calls and recalls numbers, and
   shows a read-only visitor list.
 - **Admin** — password-protected. Visitor list, event title, welcome
-  message, services list, CSV download/upload, and reset.
+  message, services list, pause/resume registration, CSV download/upload,
+  and reset.
 
 Default passwords (change these before your event — see below):
 - Call desk: `call1234`
 - Admin: `admin1234`
+
+## Pausing new registrations
+
+On the admin page, under "Queue overview," there's a **Pause
+registration** / **Resume registration** toggle with a status badge
+(Active / Paused). While paused:
+
+- The home screen's "Get my number" card is replaced with a message —
+  no button, so visitors can't submit a new registration.
+- Anyone who tries anyway (including a direct API call) is rejected with
+  the same message, so this can't be bypassed by refreshing or navigating
+  around the UI.
+- Visitors who already have a number are unaffected — pausing only stops
+  *new* numbers being issued, not tracking existing ones. Call desk,
+  admin, and the display board all keep working normally.
+
+The message shown to visitors is editable right below the toggle — write
+whatever fits your situation (e.g. "On a lunch break, back at 1pm") and
+click Save. It's remembered for next time you pause, so you don't need to
+retype it.
+
+## Sound and visual alert on the display board
+
+Whenever the served number changes — including a plain **recall** of the
+same number, not just a new call — the "Now Serving" board:
+- Plays a two-tone chime (turned up significantly from earlier).
+- Sends three amber rings rippling outward from the number, like a sonar
+  ping.
+- Pulses the number itself with a glow, as before.
+
+**On sound specifically:** browsers require a tap before they'll allow
+any sound to play, so the first time the board is opened you'll see a
+small **"🔔 Tap to enable the number-change sound"** banner at the top —
+tap it once (it plays a confirmation chime and disappears) and sound
+keeps working for the rest of that browser session. This only needs
+doing once per device/browser tab you use for the board. The ripple
+effect always works regardless, with no tap needed.
+
+**If you're showing this on a smart TV**, worth knowing: sound reliably
+works if you're running a laptop/mini-PC into the TV over HDMI (the
+browser genuinely runs on that device, audio comes through the HDMI
+cable). If instead you're opening the board in the TV's own built-in
+browser, Web Audio support varies a lot between TV models and the
+"tap to enable" step may be awkward with a remote — the ripple effect is
+a reliable fallback either way, since it doesn't depend on audio support
+at all.
 
 ## Event title and welcome message length
 
@@ -41,32 +89,6 @@ on the home screen) can be up to 200 characters. Both are enforced in the
 input box and on the server, so pasting a longer value just gets trimmed
 to the limit rather than rejected. A long title truncates with `…` in the
 header bar on narrow screens rather than breaking the layout.
-
-## Sound and visual alert on the display board
-
-Whenever the served number changes, the "Now Serving" board:
-- Plays a short two-tone chime.
-- Briefly flashes the whole screen amber (not just the number) — useful
-  if people are watching from across a room or the TV's own volume isn't
-  reliable.
-- Pulses the number itself with a glow, as before.
-
-**On sound specifically:** browsers require a tap before they'll allow
-any sound to play, so the first time the board is opened you'll see a
-small **"🔔 Tap to enable the number-change sound"** banner at the top —
-tap it once (it plays a confirmation chime and disappears) and sound
-keeps working for the rest of that browser session. This only needs
-doing once per device/browser tab you use for the board. The flash
-effect always works regardless, with no tap needed.
-
-**If you're showing this on a smart TV**, worth knowing: sound reliably
-works if you're running a laptop/mini-PC into the TV over HDMI (the
-browser genuinely runs on that device, audio comes through the HDMI
-cable). If instead you're opening the board in the TV's own built-in
-browser, Web Audio support varies a lot between TV models and the
-"tap to enable" step may be awkward with a remote — the flash effect is
-a reliable fallback either way, since it doesn't depend on audio support
-at all.
 
 ## One number per device
 
@@ -88,12 +110,12 @@ browser data between events.
 
 ## Call desk visitor list
 
-The call desk page now shows a read-only table of all visitors (number,
-name, phone, service, registration time, and called/waiting status) below
-the call controls — the same information admins see, but without any of
-the editing tools (no CSV import/export, no reset, no event settings).
-This uses the call desk password only; call desk staff never need the
-admin password to see who's registered.
+The call desk page shows a read-only table of all visitors (number, name,
+phone, service, registration time, and called/waiting status) below the
+call controls — the same information admins see, but without any of the
+editing tools (no CSV import/export, no reset, no event settings). This
+uses the call desk password only; call desk staff never need the admin
+password to see who's registered.
 
 ## ⚠️ Preventing data loss on redeploy (important — read this)
 
@@ -175,7 +197,7 @@ Every registration is saved to whichever store is configured (Upstash if
 set up as above, otherwise a local `state.json` file — see the warning
 above about which one survives a redeploy). Either way, this is what
 powers the admin and call desk pages and is rewritten after every change
-(registration, call, reset, import).
+(registration, call, reset, import, pause).
 
 There's also **`visitors.csv`** — a local, plain-text, append-only log.
 Every registration adds one line here and nothing already written is ever
