@@ -4,10 +4,11 @@ A take-a-number system for events: visitors register with their name,
 phone number, and what they need help with (picked from a dropdown, or
 "Other" to type their own); both the shared "Now Serving" display board
 and each visitor's own ticket page show live updates with sound and a
-ripple effect when the number changes; a password-protected call desk
-calls the next number and shows a read-only visitor list; and a
-password-protected admin page manages the event, visitor data, and can
-pause new registrations with a custom message.
+ripple effect when the number changes — including a plain recall of the
+same number; a password-protected call desk calls the next number and
+shows a read-only visitor list; and a password-protected admin page
+manages the event, visitor data, and can pause new registrations with a
+custom message.
 
 ## Run it locally
 
@@ -71,7 +72,7 @@ same number, not just a new call — both places react:
   live panel sits below the ticket (replacing the old small "Now serving"
   text), showing the current number with the same ripple and pulse, and
   updates the "X numbers ahead of you" count alongside it. It plays the
-  same chime too.
+  same chime too, and reacts to a recall exactly like the board does.
 
 **On sound:** the display board requires a one-time tap (the
 "🔔 Tap to enable" banner) since browsers block audio until a person

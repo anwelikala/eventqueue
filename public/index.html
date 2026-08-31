@@ -342,6 +342,7 @@
   let lastServingSeen = null;
   let lastRecallSeen = null;
   let ticketServingSeen = null;
+  let ticketRecallSeen = null;
 
   const app = document.getElementById('app');
   const toastEl = document.getElementById('toast');
@@ -771,6 +772,7 @@
       </div>
     `;
     ticketServingSeen = state.nowServing;
+    ticketRecallSeen = state.lastRecallAt || null;
     updateTicketAheadCount();
   }
   function updateTicketAheadCount(){
@@ -799,9 +801,11 @@
   async function pollTicketUpdate(){
     state = await api.getState();
     const changed = state.nowServing !== ticketServingSeen;
+    const recalled = state.lastRecallAt && state.lastRecallAt !== ticketRecallSeen;
     ticketServingSeen = state.nowServing;
+    if(recalled){ ticketRecallSeen = state.lastRecallAt; }
     updateTicketAheadCount();
-    if(changed){
+    if(changed || recalled){
       fireTicketRipple();
       playChime();
     }
