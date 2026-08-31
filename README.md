@@ -3,9 +3,9 @@
 A take-a-number system for events: visitors register with their name,
 phone number, and what they need help with (picked from a dropdown, or
 "Other" to type their own); a "Now Serving" display board shows who's
-being helped now — with a sound alert on number changes — viewable on a
-shared screen or a visitor's own phone; a password-protected call desk
-calls the next number and shows a read-only visitor list; and a
+being helped now — with a sound and full-screen flash on number changes —
+viewable on a shared screen or a visitor's own phone; a password-protected
+call desk calls the next number and shows a read-only visitor list; and a
 password-protected admin page manages the event and visitor data.
 
 ## Run it locally
@@ -42,15 +42,31 @@ input box and on the server, so pasting a longer value just gets trimmed
 to the limit rather than rejected. A long title truncates with `…` in the
 header bar on narrow screens rather than breaking the layout.
 
-## Sound alert on the display board
+## Sound and visual alert on the display board
 
-The "Now Serving" board plays a short two-tone chime whenever the number
-changes, in addition to the visual pulse. Browsers require a tap before
-they'll allow any sound to play, so the first time the board is opened
-you'll see a small **"🔔 Tap to enable the number-change sound"** banner
-at the top — tap it once (it plays a confirmation chime and disappears)
-and the sound will keep working for the rest of that browser session.
-This only needs doing once per device/browser tab you use for the board.
+Whenever the served number changes, the "Now Serving" board:
+- Plays a short two-tone chime.
+- Briefly flashes the whole screen amber (not just the number) — useful
+  if people are watching from across a room or the TV's own volume isn't
+  reliable.
+- Pulses the number itself with a glow, as before.
+
+**On sound specifically:** browsers require a tap before they'll allow
+any sound to play, so the first time the board is opened you'll see a
+small **"🔔 Tap to enable the number-change sound"** banner at the top —
+tap it once (it plays a confirmation chime and disappears) and sound
+keeps working for the rest of that browser session. This only needs
+doing once per device/browser tab you use for the board. The flash
+effect always works regardless, with no tap needed.
+
+**If you're showing this on a smart TV**, worth knowing: sound reliably
+works if you're running a laptop/mini-PC into the TV over HDMI (the
+browser genuinely runs on that device, audio comes through the HDMI
+cable). If instead you're opening the board in the TV's own built-in
+browser, Web Audio support varies a lot between TV models and the
+"tap to enable" step may be awkward with a remote — the flash effect is
+a reliable fallback either way, since it doesn't depend on audio support
+at all.
 
 ## One number per device
 

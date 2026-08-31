@@ -189,7 +189,7 @@
   }
 
   /* ---------- display board ---------- */
-  .board-view{background:var(--ink);color:var(--board-digit);flex:1;display:flex;flex-direction:column;}
+  .board-view{background:var(--ink);color:var(--board-digit);flex:1;display:flex;flex-direction:column;position:relative;}
   .board-view .topline{border-bottom:1px solid rgba(247,244,236,0.14);}
   .board-view .brand .mark{background:var(--amber);color:var(--ink);}
   .board-view .brand .title{color:var(--board-digit);}
@@ -207,6 +207,17 @@
     0%{ transform:scale(1); text-shadow: 0 0 0 rgba(216,145,46,0); }
     35%{ transform:scale(1.05); text-shadow: 0 0 60px rgba(216,145,46,0.55); }
     100%{ transform:scale(1); text-shadow: 0 0 0 rgba(216,145,46,0); }
+  }
+  .board-flash{
+    position:absolute; inset:0; background:var(--amber);
+    opacity:0; pointer-events:none; z-index:5;
+  }
+  .board-flash.flash{ animation:boardFlash 900ms ease; }
+  @media (prefers-reduced-motion: reduce){ .board-flash.flash{ animation:none; } }
+  @keyframes boardFlash{
+    0%{ opacity:0; }
+    12%{ opacity:0.55; }
+    100%{ opacity:0; }
   }
   .board-sub{font-size:15px;color:rgba(247,244,236,0.6);}
   .board-footer{text-align:center;padding:18px;font-size:12px;color:rgba(247,244,236,0.4);letter-spacing:1px;text-transform:uppercase;}
@@ -699,6 +710,7 @@
   function renderDisplay(){
     app.innerHTML = `
       <div class="board-view">
+        <div class="board-flash" id="board-flash"></div>
         ${topline(true)}
         ${!soundEnabled ? `<button id="enable-sound-btn" class="sound-banner">🔔 Tap to enable the number-change sound</button>` : ''}
         <div class="board-center">
@@ -722,6 +734,7 @@
       state = await api.getState();
       const numEl = document.getElementById('serving-num');
       const subEl = document.getElementById('board-sub');
+      const flashEl = document.getElementById('board-flash');
       if(!numEl) return;
       if(state.nowServing !== lastServingSeen){
         lastServingSeen = state.nowServing;
@@ -729,6 +742,11 @@
         numEl.classList.remove('pulse');
         void numEl.offsetWidth;
         numEl.classList.add('pulse');
+        if(flashEl){
+          flashEl.classList.remove('flash');
+          void flashEl.offsetWidth;
+          flashEl.classList.add('flash');
+        }
         playChime();
       }
       if(subEl){ subEl.textContent = state.lastIssued > state.nowServing ? (state.lastIssued - state.nowServing) + ' waiting' : 'No one waiting'; }
