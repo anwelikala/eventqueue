@@ -46,9 +46,13 @@ registration** / **Resume registration** toggle with a status badge
 - Anyone who tries anyway (including a direct API call) is rejected with
   the same message, so this can't be bypassed by refreshing or navigating
   around the UI.
-- Visitors who already have a number are unaffected — pausing only stops
-  *new* numbers being issued, not tracking existing ones. Call desk,
-  admin, and the display board all keep working normally.
+- **Visitors who already have a number are unaffected.** If a device
+  already has a ticket (remembered from earlier — see "One number per
+  device" below), the home screen shows a **"View my number"** button
+  instead of the paused message, so they can always get back to their
+  ticket and see how many are ahead of them, even while new registrations
+  are paused. Call desk, admin, and the display board all keep working
+  normally throughout a pause.
 
 The message shown to visitors is editable right below the toggle — write
 whatever fits your situation (e.g. "On a lunch break, back at 1pm") and
@@ -59,7 +63,7 @@ retype it.
 
 Whenever the served number changes — including a plain **recall** of the
 same number, not just a new call — the "Now Serving" board:
-- Plays a two-tone chime (turned up significantly from earlier).
+- Plays a two-tone chime.
 - Sends three amber rings rippling outward from the number, like a sonar
   ping.
 - Pulses the number itself with a glow, as before.

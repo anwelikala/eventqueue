@@ -522,6 +522,32 @@
   /* ---------------- LANDING (hero + board card + footer) ---------------- */
   function renderLanding(){
     const paused = state.registrationPaused;
+    const stored = getStoredTicket();
+    const hasExistingTicket = stored && Number.isInteger(stored.number) && stored.number <= state.lastIssued;
+
+    let heroHtml;
+    if(hasExistingTicket){
+      heroHtml = `
+        <div class="hero-icon">#</div>
+        <h2>View my number</h2>
+        <p>You already have a number on this device.</p>
+        <button class="hero-btn" id="hero-register-btn">View my number</button>
+      `;
+    } else if(paused){
+      heroHtml = `
+        <div class="hero-icon" style="background:var(--rust);">⏸</div>
+        <h2>Registration paused</h2>
+        <p>${escapeHtml(state.pausedMessage || "We're not issuing new numbers right now. Please check back shortly.")}</p>
+      `;
+    } else {
+      heroHtml = `
+        <div class="hero-icon">#</div>
+        <h2>Get my number</h2>
+        <p>Register and receive a ticket number. You'll be helped in order.</p>
+        <button class="hero-btn" id="hero-register-btn">Get my number</button>
+      `;
+    }
+
     app.innerHTML = `
       ${topline(false)}
       <div class="center-col">
@@ -529,16 +555,7 @@
         <p class="landing-sub">${escapeHtml(state.welcomeMessage || "Choose what you're here to do.")}</p>
 
         <div class="hero-card">
-          ${paused ? `
-            <div class="hero-icon" style="background:var(--rust);">⏸</div>
-            <h2>Registration paused</h2>
-            <p>${escapeHtml(state.pausedMessage || "We're not issuing new numbers right now. Please check back shortly.")}</p>
-          ` : `
-            <div class="hero-icon">#</div>
-            <h2>Get my number</h2>
-            <p>Register and receive a ticket number. You'll be helped in order.</p>
-            <button class="hero-btn" id="hero-register-btn">Get my number</button>
-          `}
+          ${heroHtml}
         </div>
 
         <button class="board-card" onclick="__app.goto('display')">
@@ -555,7 +572,7 @@
         <button onclick="__app.goto(sessionStorage.getItem('adminPassword') ? 'admin-panel' : 'admin-login')">Admin</button>
       </div>
     `;
-    if(!paused){
+    if(hasExistingTicket || !paused){
       document.getElementById('hero-register-btn').onclick = openRegister;
     }
   }
