@@ -280,16 +280,20 @@
   .save-row{display:flex;gap:10px;margin-top:12px;}
   .danger-zone{margin-top:26px;padding-top:20px;border-top:1px solid var(--line);}
   .danger-zone p{font-size:13px;color:#8a8d9e;margin:0 0 12px;}
-  .wide-panel{max-width:1080px;width:100%;}
+  .wide-panel{max-width:1240px;width:100%;}
 
   /* ---------- visitor table ---------- */
   .table-scroll{overflow-x:auto;margin-top:18px;}
-  table.visitor-table{width:100%;border-collapse:collapse;font-size:14px;min-width:800px;}
+  table.visitor-table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:660px;}
   table.visitor-table th{
-    text-align:left;padding:10px 10px;font-size:11px;text-transform:uppercase;
+    text-align:left;padding:8px 8px;font-size:11px;text-transform:uppercase;
     letter-spacing:0.5px;color:#8a8d9e;border-bottom:1.5px solid var(--line);
   }
-  table.visitor-table td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top;white-space:nowrap;}
+  table.visitor-table td{padding:8px 8px;border-bottom:1px solid var(--line);vertical-align:top;white-space:nowrap;}
+  table.visitor-table td.service-cell{
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    max-width:160px;
+  }
   table.visitor-table tr:last-child td{border-bottom:none;}
   .status-pill{display:inline-block;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;}
   .status-pill.waiting{background:var(--paper-dark);color:var(--ink-soft);}
@@ -1295,7 +1299,7 @@
         <td>${String(v.number).padStart(3,'0')}</td>
         <td>${escapeHtml(v.name || '—')}</td>
         <td>${escapeHtml(v.phone || '—')}</td>
-        <td>${escapeHtml(v.service || '—')}</td>
+        <td class="service-cell" title="${escapeHtml(v.service || '—')}">${escapeHtml(v.service || '—')}</td>
         <td>${fmtTime(v.registeredAt)}</td>
         <td>${fmtTime(v.calledAt)}</td>
         <td><span class="status-pill ${v.calledAt ? 'called' : 'waiting'}">${v.calledAt ? 'Called' : 'Waiting'}</span></td>

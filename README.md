@@ -49,6 +49,12 @@ not yet marked helped (still being assisted), or you can track both at a
 glance. Either the call desk password or the admin password can toggle
 it — call desk staff don't need admin access just to mark someone done.
 
+The visitor table is fairly compact by design (small text, a truncated
+"Needs help with" column that shows the full text on hover) so that all
+the columns — including "Helped" — fit on typical laptop screens without
+scrolling. On narrower screens the table scrolls horizontally as a
+fallback.
+
 This also round-trips through the CSV export/import (see below) as a
 `Helped` column (`true`/`false`), so you can bulk-review or bulk-edit it
 in a spreadsheet if needed.
@@ -58,8 +64,8 @@ in a spreadsheet if needed.
 The line visitors see under their number ("We'll help you in order." by
 default) is now editable from the **Admin** page, under "Landing page
 text" — alongside the event title and welcome message. Up to 150
-characters, e.g. "Please have your ID ready" or "Estimated wait: 20
-minutes."
+characters, e.g. "Please have your ID ready" or "Please be nearby when
+your number is called — you may lose your place if you're not there."
 
 ## Pausing new registrations
 
