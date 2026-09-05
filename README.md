@@ -36,6 +36,25 @@ Default passwords (change these before your event — see below):
 - Call desk: `call1234`
 - Admin: `admin1234`
 
+## Ticket status text
+
+The pill on a visitor's ticket page (below the "Now serving" mini-board)
+shows one of four accurate states, not just "ahead" vs. "next":
+
+- **"X numbers ahead of you"** — the normal waiting state.
+- **"You're next"** — the served number is exactly one below theirs.
+- **"It's your turn — please come forward"** — the served number now
+  equals theirs.
+- **"Your number has already been called — please check with staff"** —
+  the served number has gone *past* theirs (they may have missed being
+  called, or a bigger jump happened).
+
+Earlier versions only tracked "how many ahead," which went negative once
+the served number passed a visitor's own number — that negative count
+got clamped to zero and incorrectly displayed as "You're next" even when
+someone's number had already come and gone. All four states are now
+computed explicitly, so that mismatch can't happen.
+
 ## Marking visitors as helped
 
 Both the admin page and the call desk page show a **"Mark helped"**
@@ -62,10 +81,8 @@ in a spreadsheet if needed.
 ## Editable ticket message
 
 The line visitors see under their number ("We'll help you in order." by
-default) is now editable from the **Admin** page, under "Landing page
-text" — alongside the event title and welcome message. Up to 150
-characters, e.g. "Please have your ID ready" or "Please be nearby when
-your number is called — you may lose your place if you're not there."
+default) is editable from the **Admin** page, under "Landing page text"
+— alongside the event title and welcome message. Up to 150 characters.
 
 ## Pausing new registrations
 
@@ -101,9 +118,9 @@ same number, not just a new call — both places react:
   number with a glow.
 - **Each visitor's own ticket page** — a compact version of the same
   live panel sits below the ticket, showing the current number with the
-  same ripple and pulse, and updates the "X numbers ahead of you" count
-  alongside it. It plays the same chime too, and reacts to a recall
-  exactly like the board does.
+  same ripple and pulse, and updates the status pill alongside it (see
+  "Ticket status text" above). It plays the same chime too, and reacts
+  to a recall exactly like the board does.
 
 **On sound:** the display board requires a one-time tap (the
 "🔔 Tap to enable" banner) since browsers block audio until a person
@@ -138,9 +155,7 @@ The registration form requires:
   accented and non-Latin names work fine), plus spaces, hyphens,
   apostrophes, and periods for things like "Anne-Marie O'Connor" or
   "J. Fernando". Digits, symbols, and a single letter repeated the whole
-  way through (like "aaaaaa") are rejected. Worth knowing: this catches
-  obviously invalid input but can't perfectly detect every possible fake
-  name, since there's no dictionary check involved.
+  way through (like "aaaaaa") are rejected.
 - **Phone**: digits, spaces, `+`, `-`, and `()` are allowed (so
   international formats like `+46 70 123 45 67` work fine), with at
   least 7 and at most 15 digits.
