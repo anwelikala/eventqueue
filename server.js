@@ -6,7 +6,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'state.json');
 const CSV_FILE = path.join(__dirname, 'visitors.csv');
-const CSV_HEADER = 'Number,Name,Phone,Service,RegisteredAt,CalledAt\n';
+const CSV_HEADER = 'Number,Name,Phone,Service,RegisteredAt,CalledAt,Helped\n';
 const REDIS_KEY = 'queue-app-state';
 
 // Change these — either edit the defaults below, or (recommended) set
@@ -64,7 +64,8 @@ function appendVisitorToCsv(visitor) {
     csvEscape(visitor.phone),
     csvEscape(visitor.service),
     new Date(visitor.registeredAt).toISOString(),
-    visitor.calledAt ? new Date(visitor.calledAt).toISOString() : ''
+    visitor.calledAt ? new Date(visitor.calledAt).toISOString() : '',
+    visitor.helped ? 'true' : 'false'
   ].join(',') + '\n';
   fs.appendFile(CSV_FILE, row, (err) => {
     if (err) console.error('Failed to append to visitors.csv:', err);
@@ -74,6 +75,7 @@ function appendVisitorToCsv(visitor) {
 const DEFAULT_STATE = {
   title: 'Application Help Day',
   welcomeMessage: "Choose what you're here to do.",
+  ticketMessage: "We'll help you in order.",
   services: [
     'Renewal of Passports',
     'Applications for Registration of Birth / Citizenship / Dual Citizenships',
@@ -91,7 +93,7 @@ const DEFAULT_STATE = {
   registrationPaused: false,
   pausedMessage: "We're not issuing new numbers right now. Please check back shortly.",
   updatedAt: Date.now(),
-  visitors: [] // { number, name, phone, service, registeredAt, calledAt }
+  visitors: [] // { number, name, phone, service, registeredAt, calledAt, helped }
 };
 
 function mergeWithDefaults(parsed) {
@@ -145,6 +147,7 @@ function publicState() {
   return {
     title: state.title,
     welcomeMessage: state.welcomeMessage,
+    ticketMessage: state.ticketMessage,
     services: state.services,
     lastIssued: state.lastIssued,
     nowServing: state.nowServing,
@@ -216,7 +219,8 @@ app.post('/api/register', (req, res) => {
     phone,
     service,
     registeredAt: Date.now(),
-    calledAt: null
+    calledAt: null,
+    helped: false
   };
   state.visitors.push(visitor);
   state.updatedAt = Date.now();
@@ -261,6 +265,21 @@ app.get('/api/call/visitors', requireCall, (req, res) => {
   res.json({ visitors: state.visitors });
 });
 
+function setVisitorHelped(req, res) {
+  const number = parseInt(req.body && req.body.number, 10);
+  const helped = !!(req.body && req.body.helped);
+  const visitor = state.visitors.find(v => v.number === number);
+  if (!visitor) {
+    return res.status(404).json({ error: 'Visitor not found.' });
+  }
+  visitor.helped = helped;
+  state.updatedAt = Date.now();
+  persist();
+  res.json({ visitors: state.visitors });
+}
+app.post('/api/call/visitors/helped', requireCall, setVisitorHelped);
+app.post('/api/admin/visitors/helped', requireAdmin, setVisitorHelped);
+
 /* ------------------------------------------------------------------ */
 /* Admin (password protected): visitor list, event name, reset         */
 /* ------------------------------------------------------------------ */
@@ -286,7 +305,8 @@ function visitorsToCsv(visitors) {
     csvEscape(v.phone),
     csvEscape(v.service),
     new Date(v.registeredAt).toISOString(),
-    v.calledAt ? new Date(v.calledAt).toISOString() : ''
+    v.calledAt ? new Date(v.calledAt).toISOString() : '',
+    v.helped ? 'true' : 'false'
   ].join(','));
   return CSV_HEADER + rows.join('\n') + (rows.length ? '\n' : '');
 }
@@ -351,6 +371,7 @@ app.post('/api/admin/import', requireAdmin, (req, res) => {
   const idxService = col('service');
   const idxRegisteredAt = col('registeredat');
   const idxCalledAt = col('calledat');
+  const idxHelped = col('helped');
 
   if ([idxNumber, idxName, idxPhone, idxService].includes(-1)) {
     return res.status(400).json({ error: 'The header row must include Number, Name, Phone, and Service columns.' });
@@ -370,6 +391,7 @@ app.post('/api/admin/import', requireAdmin, (req, res) => {
     const service = (r[idxService] || '').trim();
     const registeredAtStr = idxRegisteredAt > -1 ? (r[idxRegisteredAt] || '').trim() : '';
     const calledAtStr = idxCalledAt > -1 ? (r[idxCalledAt] || '').trim() : '';
+    const helpedStr = idxHelped > -1 ? (r[idxHelped] || '').trim().toLowerCase() : '';
 
     const number = parseInt(numberStr, 10);
     if (!Number.isInteger(number) || number <= 0) {
@@ -406,7 +428,8 @@ app.post('/api/admin/import', requireAdmin, (req, res) => {
     }
 
     seenNumbers.add(number);
-    newVisitors.push({ number, name, phone, service, registeredAt, calledAt });
+    const helped = ['true', 'yes', '1'].includes(helpedStr);
+    newVisitors.push({ number, name, phone, service, registeredAt, calledAt, helped });
   }
 
   if (errors.length > 0) {
@@ -445,6 +468,15 @@ app.post('/api/admin/welcome', requireAdmin, (req, res) => {
   const message = ((req.body && req.body.message) || '').toString().trim().slice(0, 200);
   if (message) {
     state.welcomeMessage = message;
+    persist();
+  }
+  res.json(publicState());
+});
+
+app.post('/api/admin/ticket-message', requireAdmin, (req, res) => {
+  const message = ((req.body && req.body.message) || '').toString().trim().slice(0, 150);
+  if (message) {
+    state.ticketMessage = message;
     persist();
   }
   res.json(publicState());

@@ -5,10 +5,10 @@ phone number, and what they need help with (picked from a dropdown, or
 "Other" to type their own); both the shared "Now Serving" display board
 and each visitor's own ticket page show live updates with sound and a
 ripple effect when the number changes — including a plain recall of the
-same number; a password-protected call desk calls the next number and
-shows a read-only visitor list; and a password-protected admin page
-manages the event, visitor data, and can pause new registrations with a
-custom message.
+same number; a password-protected call desk calls the next number, shows
+a visitor list, and can mark visitors as helped; and a
+password-protected admin page manages the event, visitor data, and can
+pause new registrations with a custom message.
 
 ## Run it locally
 
@@ -27,36 +27,39 @@ small links in the footer at the bottom of the page, since visitors don't
 need them:
 - **Now Serving** — the live display board, viewable by anyone.
 - **Call desk** — password-protected. Calls and recalls numbers, and
-  shows a read-only visitor list.
-- **Admin** — password-protected. Visitor list, event title, welcome
-  message, services list, pause/resume registration, CSV download/upload,
-  and reset.
+  shows the visitor list with a "Mark helped" button per person.
+- **Admin** — password-protected. Visitor list (with the same "Mark
+  helped" button), event title, welcome message, ticket message, services
+  list, pause/resume registration, CSV download/upload, and reset.
 
 Default passwords (change these before your event — see below):
 - Call desk: `call1234`
 - Admin: `admin1234`
 
-## Name and phone number validation
+## Marking visitors as helped
 
-The registration form requires:
+Both the admin page and the call desk page show a **"Mark helped"**
+button next to each visitor in the list. Click it once someone's finished
+being helped — it turns into a green **"Helped"** badge with an **Undo**
+link next to it, in case they need further help later and you want to
+flip it back to not-yet-helped.
 
-- **Name**: at least 2 characters, letters only (any language/script, so
-  accented and non-Latin names work fine), plus spaces, hyphens,
-  apostrophes, and periods for things like "Anne-Marie O'Connor" or
-  "J. Fernando". Digits, symbols, and a single letter repeated the whole
-  way through (like "aaaaaa") are rejected. Worth knowing: this catches
-  obviously invalid input (numbers, symbols, keyboard-mashing patterns
-  like "aaaa") but can't perfectly detect every possible fake name — a
-  short plausible-looking string of real letters can still slip through,
-  since there's no dictionary check involved.
-- **Phone**: digits, spaces, `+`, `-`, and `()` are allowed (so
-  international formats like `+46 70 123 45 67` work fine), with at
-  least 7 and at most 15 digits. Letters or too few/too many digits are
-  rejected.
+This is separate from the "Called" status: a visitor can be called but
+not yet marked helped (still being assisted), or you can track both at a
+glance. Either the call desk password or the admin password can toggle
+it — call desk staff don't need admin access just to mark someone done.
 
-Both are checked in the browser (with an inline error message) and again
-on the server, so the rules hold even if someone calls the API directly
-rather than using the form.
+This also round-trips through the CSV export/import (see below) as a
+`Helped` column (`true`/`false`), so you can bulk-review or bulk-edit it
+in a spreadsheet if needed.
+
+## Editable ticket message
+
+The line visitors see under their number ("We'll help you in order." by
+default) is now editable from the **Admin** page, under "Landing page
+text" — alongside the event title and welcome message. Up to 150
+characters, e.g. "Please have your ID ready" or "Estimated wait: 20
+minutes."
 
 ## Pausing new registrations
 
@@ -91,13 +94,10 @@ same number, not just a new call — both places react:
   three amber rings rippling outward from the number, and pulses the
   number with a glow.
 - **Each visitor's own ticket page** — a compact version of the same
-  live panel sits below the ticket (replacing the old small "Now serving"
-  text), showing the current number with the same ripple and pulse, and
-  updates the "X numbers ahead of you" count alongside it. It plays the
-  same chime too, and reacts to a recall exactly like the board does.
-  Since this panel already shows the live number directly, the ticket
-  page no longer has a separate link down to the full board — that link
-  now only appears on the home page.
+  live panel sits below the ticket, showing the current number with the
+  same ripple and pulse, and updates the "X numbers ahead of you" count
+  alongside it. It plays the same chime too, and reacts to a recall
+  exactly like the board does.
 
 **On sound:** the display board requires a one-time tap (the
 "🔔 Tap to enable" banner) since browsers block audio until a person
@@ -115,14 +115,32 @@ browser, Web Audio support varies a lot between TV models and the
 a reliable fallback either way, since it doesn't depend on audio support
 at all.
 
-## Event title and welcome message length
+## Event title, welcome message, and ticket message length
 
-The **Event title** (shown in the small header bar on every screen) can
-be up to 100 characters. The **Welcome message** (shown under "Welcome"
-on the home screen) can be up to 200 characters. Both are enforced in the
-input box and on the server, so pasting a longer value just gets trimmed
-to the limit rather than rejected. A long title truncates with `…` in the
-header bar on narrow screens rather than breaking the layout.
+The **Event title** (header bar) can be up to 100 characters. The
+**Welcome message** (home screen) can be up to 200. The **Ticket
+message** (under a visitor's number) can be up to 150. All three are
+enforced in the input box and on the server, so pasting a longer value
+just gets trimmed rather than rejected. A long title truncates with `…`
+in the header bar on narrow screens rather than breaking the layout.
+
+## Name and phone number validation
+
+The registration form requires:
+
+- **Name**: at least 2 characters, letters only (any language/script, so
+  accented and non-Latin names work fine), plus spaces, hyphens,
+  apostrophes, and periods for things like "Anne-Marie O'Connor" or
+  "J. Fernando". Digits, symbols, and a single letter repeated the whole
+  way through (like "aaaaaa") are rejected. Worth knowing: this catches
+  obviously invalid input but can't perfectly detect every possible fake
+  name, since there's no dictionary check involved.
+- **Phone**: digits, spaces, `+`, `-`, and `()` are allowed (so
+  international formats like `+46 70 123 45 67` work fine), with at
+  least 7 and at most 15 digits.
+
+Both are checked in the browser and again on the server, so the rules
+hold even if someone calls the API directly rather than using the form.
 
 ## One number per device
 
@@ -141,15 +159,6 @@ If the queue is reset for a new event, previously-issued device tickets
 are recognized as stale (since they no longer refer to anyone in the
 fresh queue) and the restriction clears automatically — no need to clear
 browser data between events.
-
-## Visitor list (admin and call desk)
-
-Both the admin page and the call desk page show a table of visitors with
-their number, name, phone, service, when they registered, when they were
-called (blank if still waiting), and a Waiting/Called status badge. The
-call desk version is read-only — no editing tools, just the information
-— and uses the call desk password only, so staff there never need the
-admin password just to see who's registered.
 
 ## ⚠️ Preventing data loss on redeploy (important — read this)
 
@@ -194,7 +203,8 @@ the visitor list with an edited file. The typical flow:
 
 1. Click **Download CSV** to get the current list.
 2. Edit it in Excel, Google Sheets, or any spreadsheet app — fix a typo'd
-   name or phone number, correct a service, etc.
+   name or phone number, correct a service, change `Helped` to
+   `true`/`false`, etc.
 3. **To reorder the queue**, change the numbers in the `Number` column.
    The call desk always calls tickets in that exact numeric order, so
    renumbering rows changes who gets called next.
@@ -205,9 +215,11 @@ the visitor list with an edited file. The typical flow:
 A few rules the import enforces, with nothing applied if any row fails:
 - Every row needs a unique, positive whole number in `Number`.
 - `Name`, `Phone`, and `Service` can't be blank.
-- `RegisteredAt` and `CalledAt` are optional — leave a row's `RegisteredAt`
-  blank and it's stamped with the current time; leave `CalledAt` blank to
-  mark someone as not yet called.
+- `RegisteredAt`, `CalledAt`, and `Helped` are optional — leave
+  `RegisteredAt` blank and it's stamped with the current time; leave
+  `CalledAt` blank to mark someone as not yet called; leave `Helped`
+  blank (or anything other than `true`/`yes`/`1`) to mark as not yet
+  helped.
 
 If anything's wrong, you'll see exactly which rows and why — nothing is
 changed until every row is valid. One thing worth knowing: the app treats
@@ -222,7 +234,7 @@ Every registration is saved to whichever store is configured (Upstash if
 set up as above, otherwise a local `state.json` file — see the warning
 above about which one survives a redeploy). Either way, this is what
 powers the admin and call desk pages and is rewritten after every change
-(registration, call, reset, import, pause).
+(registration, call, reset, import, pause, marking helped).
 
 There's also **`visitors.csv`** — a local, plain-text, append-only log.
 Every registration adds one line here and nothing already written is ever

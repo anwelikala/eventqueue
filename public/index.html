@@ -284,18 +284,25 @@
 
   /* ---------- visitor table ---------- */
   .table-scroll{overflow-x:auto;margin-top:18px;}
-  table.visitor-table{width:100%;border-collapse:collapse;font-size:14px;min-width:660px;}
+  table.visitor-table{width:100%;border-collapse:collapse;font-size:14px;min-width:800px;}
   table.visitor-table th{
     text-align:left;padding:10px 10px;font-size:11px;text-transform:uppercase;
     letter-spacing:0.5px;color:#8a8d9e;border-bottom:1.5px solid var(--line);
   }
-  table.visitor-table td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  table.visitor-table td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top;white-space:nowrap;}
   table.visitor-table tr:last-child td{border-bottom:none;}
   .status-pill{display:inline-block;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;}
   .status-pill.waiting{background:var(--paper-dark);color:var(--ink-soft);}
   .status-pill.called{background:#DCEEE8;color:var(--teal);}
   .status-pill.active{background:#DCEEE8;color:var(--teal);}
   .status-pill.paused{background:#F5DCC9;color:var(--rust);}
+  .table-action-btn{
+    background:transparent;border:1.5px solid var(--line);color:var(--ink-soft);
+    padding:5px 12px;border-radius:100px;font-size:11px;font-weight:700;
+    cursor:pointer;font-family:var(--font-body);
+  }
+  .table-action-btn.primary{border-color:var(--teal);color:var(--teal);}
+  .table-action-btn:hover{border-color:var(--ink);color:var(--ink);}
   .empty-note{color:#8a8d9e;font-size:14px;margin-top:18px;text-align:center;}
 
   /* ---------- service chips (admin) ---------- */
@@ -447,12 +454,30 @@
       if(res.status === 401){ handleAuthFailure('call'); throw new Error('unauthorized'); }
       return res.json();
     },
+    callToggleHelped: async (number, helped) => {
+      const res = await apiCall('/api/call/visitors/helped', {
+        method:'POST',
+        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('call')),
+        body: JSON.stringify({ number, helped })
+      });
+      if(res.status === 401){ handleAuthFailure('call'); throw new Error('unauthorized'); }
+      return res.json();
+    },
 
     adminLogin: async (password) => (await apiCall('/api/admin/login', {
       method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password })
     })).json(),
     adminVisitors: async () => {
       const res = await apiCall('/api/admin/visitors', { headers: authHeaders('admin') });
+      if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
+      return res.json();
+    },
+    adminToggleHelped: async (number, helped) => {
+      const res = await apiCall('/api/admin/visitors/helped', {
+        method:'POST',
+        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
+        body: JSON.stringify({ number, helped })
+      });
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
       return res.json();
     },
@@ -467,6 +492,15 @@
     },
     adminSetWelcome: async (message) => {
       const res = await apiCall('/api/admin/welcome', {
+        method:'POST',
+        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
+        body: JSON.stringify({ message })
+      });
+      if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
+      return res.json();
+    },
+    adminSetTicketMessage: async (message) => {
+      const res = await apiCall('/api/admin/ticket-message', {
         method:'POST',
         headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
         body: JSON.stringify({ message })
@@ -760,7 +794,7 @@
             <div class="perf"></div>
             <div class="ticket-eyebrow">Your number</div>
             <div class="ticket-number">${String(myTicket).padStart(3,'0')}</div>
-            <p class="ticket-hint">We'll help you in order.</p>
+            <p class="ticket-hint">${escapeHtml(state.ticketMessage || "We'll help you in order.")}</p>
             <div class="ticket-divider"></div>
             <div class="ticket-meta">
               <span>${escapeHtml(state.title)}</span>
@@ -1008,7 +1042,7 @@
       }catch(e){ /* handled by auth/offline handlers */ }
       try{
         const data = await api.callVisitors();
-        renderVisitorTable('call-visitor-table-wrap', data.visitors);
+        renderVisitorTable('call-visitor-table-wrap', data.visitors, api.callToggleHelped);
       }catch(e){ /* handled */ }
     }
     refreshCallDesk();
@@ -1046,7 +1080,7 @@
           </div>
           <div class="panel">
             <h3>Landing page text</h3>
-            <p style="font-size:13px;color:#8a8d9e;margin:6px 0 14px;">Event title shows in the header on every screen. The welcome message shows under "Welcome" on the home screen.</p>
+            <p style="font-size:13px;color:#8a8d9e;margin:6px 0 14px;">Event title shows in the header on every screen. The welcome message shows under "Welcome" on the home screen. The ticket message shows under a visitor's number after they register.</p>
             <div class="field-group">
               <label class="field-label" for="title-input">Event title</label>
               <input class="text-input" id="title-input" value="${escapeHtml(state.title)}" maxlength="100">
@@ -1059,6 +1093,13 @@
               <input class="text-input" id="welcome-input" value="${escapeHtml(state.welcomeMessage || '')}" maxlength="200">
               <div class="save-row">
                 <button class="ghost-btn" id="save-welcome-btn" style="flex:1;">Save message</button>
+              </div>
+            </div>
+            <div class="field-group" style="margin-top:20px;">
+              <label class="field-label" for="ticket-message-input">Ticket message</label>
+              <input class="text-input" id="ticket-message-input" value="${escapeHtml(state.ticketMessage || '')}" maxlength="150">
+              <div class="save-row">
+                <button class="ghost-btn" id="save-ticket-message-btn" style="flex:1;">Save message</button>
               </div>
             </div>
           </div>
@@ -1114,6 +1155,14 @@
       try{
         state = await api.adminSetWelcome(val);
         showToast('Welcome message saved');
+      }catch(e){ /* handled */ }
+    };
+    document.getElementById('save-ticket-message-btn').onclick = async ()=>{
+      const val = document.getElementById('ticket-message-input').value.trim();
+      if(!val) return;
+      try{
+        state = await api.adminSetTicketMessage(val);
+        showToast('Ticket message saved');
       }catch(e){ /* handled */ }
     };
     document.getElementById('pause-toggle-btn').onclick = async ()=>{
@@ -1224,7 +1273,7 @@
     async function loadVisitors(){
       try{
         const data = await api.adminVisitors();
-        renderVisitorTable('visitor-table-wrap', data.visitors);
+        renderVisitorTable('visitor-table-wrap', data.visitors, api.adminToggleHelped);
       }catch(e){ /* handled */ }
     }
 
@@ -1234,7 +1283,7 @@
 
   // Shared read-only visitor table renderer, used by both the admin page
   // and the call desk's read-only visitor list.
-  function renderVisitorTable(containerId, visitors){
+  function renderVisitorTable(containerId, visitors, toggleHelpedFn){
     const wrap = document.getElementById(containerId);
     if(!wrap) return;
     if(!visitors || visitors.length === 0){
@@ -1250,18 +1299,36 @@
         <td>${fmtTime(v.registeredAt)}</td>
         <td>${fmtTime(v.calledAt)}</td>
         <td><span class="status-pill ${v.calledAt ? 'called' : 'waiting'}">${v.calledAt ? 'Called' : 'Waiting'}</span></td>
+        <td>
+          ${v.helped
+            ? `<span class="status-pill called">Helped</span> <button class="table-action-btn" data-number="${v.number}" data-helped="false">Undo</button>`
+            : `<button class="table-action-btn primary" data-number="${v.number}" data-helped="true">Mark helped</button>`
+          }
+        </td>
       </tr>
     `).join('');
     wrap.innerHTML = `
       <div class="table-scroll">
         <table class="visitor-table">
           <thead>
-            <tr><th>#</th><th>Name</th><th>Phone</th><th>Needs help with</th><th>Registered</th><th>Called</th><th>Status</th></tr>
+            <tr><th>#</th><th>Name</th><th>Phone</th><th>Needs help with</th><th>Registered</th><th>Called</th><th>Status</th><th>Helped</th></tr>
           </thead>
           <tbody>${rows}</tbody>
         </table>
       </div>
     `;
+    if(toggleHelpedFn){
+      wrap.querySelectorAll('.table-action-btn').forEach(btn=>{
+        btn.onclick = async ()=>{
+          const number = parseInt(btn.getAttribute('data-number'), 10);
+          const helped = btn.getAttribute('data-helped') === 'true';
+          try{
+            const data = await toggleHelpedFn(number, helped);
+            renderVisitorTable(containerId, data.visitors, toggleHelpedFn);
+          }catch(e){ /* handled by auth/offline handlers */ }
+        };
+      });
+    }
   }
 
   function render(){
