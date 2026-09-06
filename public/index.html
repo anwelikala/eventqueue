@@ -159,6 +159,7 @@
   input.text-input:focus, select.text-input:focus{outline:2px solid var(--amber);outline-offset:1px;border-color:var(--amber);}
   .field-error{color:var(--rust);font-size:13px;margin:-10px 0 16px;display:none;}
   .field-error.show{display:block;}
+  .privacy-note{margin:16px 0 0;font-size:12px;line-height:1.5;color:#8a8d9e;text-align:center;}
 
   /* ---------- ticket ---------- */
   .ticket-wrap{width:100%;max-width:380px;}
@@ -514,6 +515,15 @@
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
       return res.json();
     },
+    adminSetPrivacyNotice: async (message) => {
+      const res = await apiCall('/api/admin/privacy-notice', {
+        method:'POST',
+        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
+        body: JSON.stringify({ message })
+      });
+      if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
+      return res.json();
+    },
     adminSetPause: async (paused) => {
       const res = await apiCall('/api/admin/pause', {
         method:'POST',
@@ -732,6 +742,7 @@
             <div class="field-error" id="form-error">Please fill in all fields.</div>
             <button class="primary-btn" type="submit" style="width:100%;">Get my number</button>
           </form>
+          <p class="privacy-note">${escapeHtml(state.privacyNotice || '')}</p>
         </div>
       </div>
     `;
@@ -1102,7 +1113,7 @@
           </div>
           <div class="panel">
             <h3>Landing page text</h3>
-            <p style="font-size:13px;color:#8a8d9e;margin:6px 0 14px;">Event title shows in the header on every screen. The welcome message shows under "Welcome" on the home screen. The ticket message shows under a visitor's number after they register.</p>
+            <p style="font-size:13px;color:#8a8d9e;margin:6px 0 14px;">Event title shows in the header on every screen. The welcome message shows under "Welcome" on the home screen. The ticket message shows under a visitor's number after they register. The privacy notice shows on the registration form itself.</p>
             <div class="field-group">
               <label class="field-label" for="title-input">Event title</label>
               <input class="text-input" id="title-input" value="${escapeHtml(state.title)}" maxlength="100">
@@ -1122,6 +1133,13 @@
               <input class="text-input" id="ticket-message-input" value="${escapeHtml(state.ticketMessage || '')}" maxlength="150">
               <div class="save-row">
                 <button class="ghost-btn" id="save-ticket-message-btn" style="flex:1;">Save message</button>
+              </div>
+            </div>
+            <div class="field-group" style="margin-top:20px;">
+              <label class="field-label" for="privacy-notice-input">Privacy notice (shown on the register form)</label>
+              <input class="text-input" id="privacy-notice-input" value="${escapeHtml(state.privacyNotice || '')}" maxlength="250">
+              <div class="save-row">
+                <button class="ghost-btn" id="save-privacy-notice-btn" style="flex:1;">Save notice</button>
               </div>
             </div>
           </div>
@@ -1185,6 +1203,14 @@
       try{
         state = await api.adminSetTicketMessage(val);
         showToast('Ticket message saved');
+      }catch(e){ /* handled */ }
+    };
+    document.getElementById('save-privacy-notice-btn').onclick = async ()=>{
+      const val = document.getElementById('privacy-notice-input').value.trim();
+      if(!val) return;
+      try{
+        state = await api.adminSetPrivacyNotice(val);
+        showToast('Privacy notice saved');
       }catch(e){ /* handled */ }
     };
     document.getElementById('pause-toggle-btn').onclick = async ()=>{

@@ -76,6 +76,7 @@ const DEFAULT_STATE = {
   title: 'Application Help Day',
   welcomeMessage: "Choose what you're here to do.",
   ticketMessage: "We'll help you in order.",
+  privacyNotice: "Your name, phone number, and selected service are used only to manage today's queue and are deleted after the event.",
   services: [
     'Renewal of Passports',
     'Applications for Registration of Birth / Citizenship / Dual Citizenships',
@@ -148,6 +149,7 @@ function publicState() {
     title: state.title,
     welcomeMessage: state.welcomeMessage,
     ticketMessage: state.ticketMessage,
+    privacyNotice: state.privacyNotice,
     services: state.services,
     lastIssued: state.lastIssued,
     nowServing: state.nowServing,
@@ -477,6 +479,15 @@ app.post('/api/admin/ticket-message', requireAdmin, (req, res) => {
   const message = ((req.body && req.body.message) || '').toString().trim().slice(0, 150);
   if (message) {
     state.ticketMessage = message;
+    persist();
+  }
+  res.json(publicState());
+});
+
+app.post('/api/admin/privacy-notice', requireAdmin, (req, res) => {
+  const message = ((req.body && req.body.message) || '').toString().trim().slice(0, 250);
+  if (message) {
+    state.privacyNotice = message;
     persist();
   }
   res.json(publicState());
