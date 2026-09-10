@@ -76,6 +76,7 @@ const DEFAULT_STATE = {
   welcomeMessage: "Choose what you're here to do.",
   ticketMessage: "We'll help you in order.",
   privacyNotice: "Your name, phone number, and selected service are used only to manage today's queue and are deleted after the event.",
+  multiCounterNotice: "If you need services from more than one counter, please get a number for each.",
 
   // Each counter runs its own independent ticket sequence and its own
   // "now serving" number — so one counter being faster or slower than
@@ -161,6 +162,7 @@ function publicState() {
     welcomeMessage: state.welcomeMessage,
     ticketMessage: state.ticketMessage,
     privacyNotice: state.privacyNotice,
+    multiCounterNotice: state.multiCounterNotice,
     counters: state.counters,
     services: state.services,
     registrationPaused: state.registrationPaused,
@@ -198,13 +200,19 @@ function isValidPhone(phone) {
   return digitCount >= 7 && digitCount <= 15;
 }
 
-function isValidName(name) {
-  const trimmed = name.trim();
-  if (trimmed.length < 2) return false;
-  if (!/^[\p{L}][\p{L}\s'’\-.]*$/u.test(trimmed)) return false;
-  const lettersOnly = trimmed.replace(/[^\p{L}]/gu, '').toLowerCase();
-  if (lettersOnly.length > 0 && /^(.)\1+$/u.test(lettersOnly)) return false;
-  return true;
+function validateName(name) {
+  const trimmed = name.trim().replace(/\s+/g, ' ');
+  const parts = trimmed.split(' ').filter(Boolean);
+  if (parts.length < 2) return 'Please enter both your first and last name.';
+  const partPattern = /^[\p{L}'’\-.]+$/u;
+  for (const part of parts) {
+    if (!partPattern.test(part)) return 'Enter your name using letters only.';
+    const lettersOnly = part.replace(/[^\p{L}]/gu, '').toLowerCase();
+    if (lettersOnly.length > 0 && /^(.)\1+$/u.test(lettersOnly)) return 'Enter your name using letters only.';
+  }
+  const anyPartLongEnough = parts.some(p => p.replace(/[^\p{L}]/gu, '').length > 3);
+  if (!anyPartLongEnough) return 'Your first or last name should be more than 3 characters.';
+  return null;
 }
 
 app.post('/api/register', (req, res) => {
@@ -220,8 +228,9 @@ app.post('/api/register', (req, res) => {
   if (!name || !rawService) {
     return res.status(400).json({ error: 'Name and service are required.' });
   }
-  if (!isValidName(name)) {
-    return res.status(400).json({ error: 'Enter your name using letters only.' });
+  const nameError = validateName(name);
+  if (nameError) {
+    return res.status(400).json({ error: nameError });
   }
   if (!isValidPhone(phone)) {
     return res.status(400).json({ error: 'Enter a valid phone number (digits only, at least 7 digits).' });
@@ -255,7 +264,7 @@ app.post('/api/register', (req, res) => {
   persist();
   appendVisitorToCsv(visitor, counter);
 
-  res.json({ ticketNumber, counterId, counterSeq, state: publicState() });
+  res.json({ ticketNumber, counterId, counterSeq, service: visitor.service, state: publicState() });
 });
 
 /* ------------------------------------------------------------------ */
@@ -537,6 +546,15 @@ app.post('/api/admin/privacy-notice', requireAdmin, (req, res) => {
   const message = ((req.body && req.body.message) || '').toString().trim().slice(0, 250);
   if (message) {
     state.privacyNotice = message;
+    persist();
+  }
+  res.json(publicState());
+});
+
+app.post('/api/admin/multi-counter-notice', requireAdmin, (req, res) => {
+  const message = ((req.body && req.body.message) || '').toString().trim().slice(0, 200);
+  if (message) {
+    state.multiCounterNotice = message;
     persist();
   }
   res.json(publicState());

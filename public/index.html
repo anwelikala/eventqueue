@@ -75,6 +75,8 @@
   .counter-tag{display:inline-block; background:var(--ink); color:var(--board-digit); font-size:11px; font-weight:700; padding:4px 12px; border-radius:100px; letter-spacing:0.5px; margin-bottom:10px;}
   .ticket-number{font-family:var(--font-display);font-weight:700;font-size:76px;line-height:1;color:var(--ink);margin:2px 0 10px;letter-spacing:2px;}
   .ticket-hint{font-size:14px;color:#5b5f73;margin:0 0 6px;line-height:1.5;}
+  .ticket-service{font-size:14px;color:var(--ink-soft);font-weight:700;margin:0 0 10px;}
+  .ticket-notice{font-size:12px;color:#8a8d9e;margin:10px 0 0;line-height:1.5;}
   .ticket-divider{border-top:2px dashed var(--line);margin:18px 0;}
   .ticket-meta{font-size:12px;color:#8a8d9e;text-transform:uppercase;letter-spacing:1px;text-align:center;}
   .ahead-pill{display:inline-block;margin-top:16px;background:var(--paper-dark);padding:8px 16px;border-radius:100px;font-size:13px;font-weight:700;color:var(--ink-soft);}
@@ -188,7 +190,7 @@
 
   let state = { title: 'Queue', welcomeMessage:'', ticketMessage:'', privacyNotice:'', counters: [], services: [], registrationPaused:false, pausedMessage:'', updatedAt:0 };
   let view = 'landing';
-  let myCounterId = null, myTicketNumber = null, myCounterSeq = null;
+  let myCounterId = null, myTicketNumber = null, myCounterSeq = null, myService = null;
   let pollTimer = null;
   let ticketServingSeen = null, ticketRecallSeen = null;
   let boardTrack = {}; // { [counterId]: { serving, recall } }
@@ -217,13 +219,19 @@
     const digitCount = (phone.match(/\d/g) || []).length;
     return digitCount >= 7 && digitCount <= 15;
   }
-  function isValidName(name){
-    const trimmed = name.trim();
-    if(trimmed.length < 2) return false;
-    if(!/^[\p{L}][\p{L}\s'’\-.]*$/u.test(trimmed)) return false;
-    const lettersOnly = trimmed.replace(/[^\p{L}]/gu, '').toLowerCase();
-    if(lettersOnly.length > 0 && /^(.)\1+$/u.test(lettersOnly)) return false;
-    return true;
+  function validateName(name){
+    const trimmed = name.trim().replace(/\s+/g, ' ');
+    const parts = trimmed.split(' ').filter(Boolean);
+    if(parts.length < 2) return 'Please enter both your first and last name.';
+    const partPattern = /^[\p{L}'’\-.]+$/u;
+    for(const part of parts){
+      if(!partPattern.test(part)) return 'Enter your name using letters only.';
+      const lettersOnly = part.replace(/[^\p{L}]/gu, '').toLowerCase();
+      if(lettersOnly.length > 0 && /^(.)\1+$/u.test(lettersOnly)) return 'Enter your name using letters only.';
+    }
+    const anyPartLongEnough = parts.some(p => p.replace(/[^\p{L}]/gu, '').length > 3);
+    if(!anyPartLongEnough) return 'Your first or last name should be more than 3 characters.';
+    return null;
   }
   function counterById(id){ return (state.counters || []).find(c => c.id === id); }
 
@@ -240,9 +248,9 @@
   function storeTickets(map){
     try{ localStorage.setItem(DEVICE_TICKETS_KEY, JSON.stringify(map)); }catch(e){ /* ignore */ }
   }
-  function saveDeviceTicket(counterId, ticketNumber, counterSeq){
+  function saveDeviceTicket(counterId, ticketNumber, counterSeq, service){
     const map = getStoredTickets();
-    map[counterId] = { ticketNumber, counterSeq };
+    map[counterId] = { ticketNumber, counterSeq, service };
     storeTickets(map);
   }
   function isAdminLoggedIn(){ return !!sessionStorage.getItem('adminPassword'); }
@@ -331,6 +339,11 @@
     },
     adminSetPrivacyNotice: async (message) => {
       const res = await apiCall('/api/admin/privacy-notice', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')), body: JSON.stringify({ message }) });
+      if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
+      return res.json();
+    },
+    adminSetMultiCounterNotice: async (message) => {
+      const res = await apiCall('/api/admin/multi-counter-notice', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')), body: JSON.stringify({ message }) });
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
       return res.json();
     },
@@ -524,6 +537,7 @@
     myCounterId = counterId;
     myTicketNumber = t.ticketNumber;
     myCounterSeq = t.counterSeq;
+    myService = t.service || null;
     renderTicket();
     startPolling(pollTicketUpdate);
   }
@@ -565,8 +579,8 @@
           ` : ''}
           <form id="register-form">
             <div class="field-group">
-              <label class="field-label" for="f-name">Name</label>
-              <input class="text-input" id="f-name" type="text" required maxlength="80" autocomplete="name">
+              <label class="field-label" for="f-name">Full name (first and last)</label>
+              <input class="text-input" id="f-name" type="text" required maxlength="80" autocomplete="name" placeholder="e.g. Kamal Perera">
             </div>
             <div class="field-group">
               <label class="field-label" for="f-phone">Phone number</label>
@@ -616,8 +630,9 @@
         errEl.classList.add('show');
         return;
       }
-      if(!isValidName(name)){
-        errEl.textContent = 'Enter your name using letters only.';
+      const nameError = validateName(name);
+      if(nameError){
+        errEl.textContent = nameError;
         errEl.classList.add('show');
         return;
       }
@@ -671,8 +686,9 @@
         myCounterId = result.counterId;
         myTicketNumber = result.ticketNumber;
         myCounterSeq = result.counterSeq;
+        myService = result.service;
         state = result.state;
-        saveDeviceTicket(myCounterId, myTicketNumber, myCounterSeq);
+        saveDeviceTicket(myCounterId, myTicketNumber, myCounterSeq, myService);
         enableSound();
         renderTicket();
         startPolling(pollTicketUpdate);
@@ -694,7 +710,9 @@
             <div class="ticket-eyebrow">Your number</div>
             <div class="counter-tag">${escapeHtml(counter.label || '')}</div>
             <div class="ticket-number">${escapeHtml(myTicketNumber || '')}</div>
+            ${myService ? `<p class="ticket-service">${escapeHtml(myService)}</p>` : ''}
             <p class="ticket-hint">${escapeHtml(state.ticketMessage || "We'll help you in order.")}</p>
+            ${state.multiCounterNotice ? `<p class="ticket-notice">${escapeHtml(state.multiCounterNotice)}</p>` : ''}
             <div class="ticket-divider"></div>
             <div class="ticket-meta">${escapeHtml(state.title)}</div>
           </div>
@@ -1034,7 +1052,7 @@
           </div>
           <div class="panel">
             <h3>Landing page text</h3>
-            <p style="font-size:13px;color:#8a8d9e;margin:6px 0 14px;">Event title shows in the header. Welcome message shows on the home screen. Ticket message shows under a visitor's number. Privacy notice shows on the register form.</p>
+            <p style="font-size:13px;color:#8a8d9e;margin:6px 0 14px;">Event title shows in the header. Welcome message shows on the home screen. Ticket message shows under a visitor's number. Privacy notice shows on the register form. Multi-counter notice shows as its own line on the ticket.</p>
             <div class="field-group">
               <label class="field-label" for="title-input">Event title</label>
               <input class="text-input" id="title-input" value="${escapeHtml(state.title)}" maxlength="100">
@@ -1054,6 +1072,11 @@
               <label class="field-label" for="privacy-notice-input">Privacy notice</label>
               <input class="text-input" id="privacy-notice-input" value="${escapeHtml(state.privacyNotice || '')}" maxlength="250">
               <div class="save-row"><button class="ghost-btn" id="save-privacy-notice-btn" style="flex:1;">Save notice</button></div>
+            </div>
+            <div class="field-group" style="margin-top:20px;">
+              <label class="field-label" for="multi-counter-notice-input">Multi-counter notice (shown on the ticket)</label>
+              <input class="text-input" id="multi-counter-notice-input" value="${escapeHtml(state.multiCounterNotice || '')}" maxlength="200">
+              <div class="save-row"><button class="ghost-btn" id="save-multi-counter-notice-btn" style="flex:1;">Save notice</button></div>
             </div>
           </div>
         </div>
@@ -1113,6 +1136,11 @@
       const val = document.getElementById('privacy-notice-input').value.trim();
       if(!val) return;
       try{ state = await api.adminSetPrivacyNotice(val); showToast('Privacy notice saved'); }catch(e){}
+    };
+    document.getElementById('save-multi-counter-notice-btn').onclick = async ()=>{
+      const val = document.getElementById('multi-counter-notice-input').value.trim();
+      if(!val) return;
+      try{ state = await api.adminSetMultiCounterNotice(val); showToast('Notice saved'); }catch(e){}
     };
     document.getElementById('pause-toggle-btn').onclick = async ()=>{
       try{

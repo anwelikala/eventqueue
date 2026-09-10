@@ -110,6 +110,21 @@ independent ticket for Counter B.
 - A queue reset clears all of this automatically (stale tickets from
   before a reset are detected and dropped).
 
+## Registered service shown on the ticket
+
+The visitor's own ticket page now shows which service they registered
+for (e.g. "Passport"), right below their number — a quick reminder of
+what they came in for.
+
+## Multi-counter notice on the ticket
+
+A separate, admin-editable line appears on the ticket page below the
+main ticket message — by default: "If you need services from more than
+one counter, please get a number for each." Edit it from the **Admin**
+page, under "Landing page text," alongside the other ticket text. This
+is intentionally a separate field from the ticket message and the
+registration form's privacy notice, so each can be worded independently.
+
 ## Marking visitors as helped
 
 Both the admin page and the call desk page show a **"Mark helped"**
@@ -159,12 +174,23 @@ Each row's `Counter` value must match an existing counter's exact name.
 Every row needs a unique `TicketNumber` ending in a number, and non-blank
 `Name`, `Phone`, `Service`. Nothing is changed until every row is valid.
 
-## Phone and name validation
+## Name and phone number validation
 
-Unchanged from before: names need to be actual letters (any
-language/script, hyphens/apostrophes/periods allowed); phone numbers need
-7–15 digits, with `+`, `-`, `()`, and spaces allowed. Both are checked in
-the browser and again on the server.
+- **Name**: must include a first and last name (two words, separated by a
+  space) — a single word is rejected. Each word must be letters only (any
+  language/script; hyphens, apostrophes, and periods allowed within a
+  word, e.g. "Anne-Marie", "O'Brien", "J."), with digits and symbol
+  strings rejected, and a single letter repeated the whole way through
+  (like "aaaa") rejected too. At least one of the two words must be more
+  than 3 letters long — so both "Kamal Perera" and "J Perera" pass, but
+  "Jo Xu" doesn't.
+- **Phone**: digits, spaces, `+`, `-`, and `()` are allowed (so
+  international formats like `+46 70 123 45 67` work fine), with at
+  least 7 and at most 15 digits.
+
+Both are checked in the browser (with a specific inline message for each
+failure) and again on the server, so the rules hold even if someone calls
+the API directly.
 
 ## ⚠️ Preventing data loss on redeploy (important — read this)
 
