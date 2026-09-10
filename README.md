@@ -3,7 +3,7 @@
 A take-a-number system for events with **multiple service counters**, each
 running its own independent queue. Visitors pick a service, get routed to
 the right counter automatically, and receive a ticket number specific to
-that counter (e.g. `1-004` for Counter 1, `2-002` for Counter 2) — one
+that counter (e.g. `A-004` for Counter A, `B-002` for Counter B) — one
 counter running faster or slower than another never affects the other's
 numbering.
 
@@ -46,23 +46,25 @@ Default passwords (change these before your event — see below):
 Each **counter** is an independent queue with its own numbering. Out of
 the box there are two:
 
-- **Counter 1** (prefix `1`): Passport, Emergency Travel Documents, Dual
+- **Counter A** (prefix `A`): Passport, Emergency Travel Documents, Dual
   Citizenship, Registration of Marriages, Attestation / Legalization
   (PoA, Affidavits, No objections), Government Leave Extensions, Life
   Certificates.
-- **Counter 2** (prefix `2`, allows "Other"): Registration of Birth,
+- **Counter B** (prefix `B`, allows "Other"): Registration of Birth,
   Citizenship and Passport for Newborn; Late Birth and Citizenship;
   Driving License; Registration of Death; VISA matters; and a free-text
   **"Other (please specify)"** option for anything not listed.
 
 A visitor picks a service on the registration form (grouped by counter in
 the dropdown) and is automatically issued the next number from the
-correct counter — so if Counter 2 is moving faster than Counter 1 that
+correct counter — so if Counter B is moving faster than Counter A that
 day, it simply gets further through its own numbers; the two never block
 each other.
 
 **Managing counters** (Admin page → "Counters"):
-- Edit a counter's **name** or **numbering prefix** any time.
+- Edit a counter's **name** or **numbering prefix** any time — this is
+  also how you rename counters or change their letter/number scheme
+  (e.g. the current "A"/"B" naming was set this way, not hardcoded).
 - Toggle **"Allow other"** to add/remove the free-text option for that
   counter.
 - **Add a new counter** with a name and prefix — it'll immediately appear
@@ -87,16 +89,16 @@ there's a **"Switch counter"** link on the dashboard if the same device
 needs to run a different counter later in the day.
 
 The visitor list on the call desk only shows people queued for the
-selected counter — a Counter 1 operator never sees Counter 2's visitors
+selected counter — a Counter A operator never sees Counter B's visitors
 (and can't accidentally call or mark them helped).
 
 ## Visitors with tickets at more than one counter
 
 Since needs can span both counters in a single visit, **each device can
 hold one active ticket per counter at the same time** — not just one
-ticket overall. If someone already has a Counter 1 number and later needs
-a Counter 2 service too, they can still register there and get a second,
-independent ticket for Counter 2.
+ticket overall. If someone already has a Counter A number and later needs
+a Counter B service too, they can still register there and get a second,
+independent ticket for Counter B.
 
 - The home screen shows small chips for any ticket(s) a device already
   holds, so returning visitors can always get back to any of them.
@@ -131,7 +133,7 @@ Whenever a counter's served number changes — including a plain **recall**
 of the same number — that counter's panel reacts independently: a
 two-tone chime, three amber rings rippling outward from its own number,
 and a pulse. Each counter's ripple/chime fires separately, so calling
-Counter 2 doesn't animate Counter 1's panel.
+Counter B doesn't animate Counter A's panel.
 
 A visitor's own ticket page behaves the same way for their specific
 counter, and doesn't need the "tap to enable sound" step the shared board
@@ -146,7 +148,7 @@ RegisteredAt, CalledAt, Helped`.
 1. **Download CSV** to get the current list (all counters together).
 2. Edit it in Excel/Sheets — fix details, change `Helped`, etc.
 3. **To reorder a counter's queue**, edit the numeric part of that
-   counter's `TicketNumber` values (e.g. change `1-004` to `1-001`) — the
+   counter's `TicketNumber` values (e.g. change `A-004` to `A-001`) — the
    call desk always calls a counter's tickets in that exact numeric
    order. Renumbering only affects ordering within the same counter;
    `Counter` and the ticket's prefix must still match.

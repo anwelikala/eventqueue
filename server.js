@@ -81,8 +81,8 @@ const DEFAULT_STATE = {
   // "now serving" number — so one counter being faster or slower than
   // another never affects the other's numbering.
   counters: [
-    { id: 'counter1', label: 'Counter 1', prefix: '1', lastIssued: 0, nowServing: 0, lastRecallAt: null, allowOther: false },
-    { id: 'counter2', label: 'Counter 2', prefix: '2', lastIssued: 0, nowServing: 0, lastRecallAt: null, allowOther: true }
+    { id: 'counter1', label: 'A', prefix: 'A', lastIssued: 0, nowServing: 0, lastRecallAt: null, allowOther: false },
+    { id: 'counter2', label: 'B', prefix: 'B', lastIssued: 0, nowServing: 0, lastRecallAt: null, allowOther: true }
   ],
 
   // Every service belongs to exactly one counter. "Other" is not a normal
