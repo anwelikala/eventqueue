@@ -6,7 +6,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'state.json');
 const CSV_FILE = path.join(__dirname, 'visitors.csv');
-const CSV_HEADER = 'Counter,TicketNumber,Name,Phone,Service,RegisteredAt,CalledAt,Helped\n';
+const CSV_HEADER = 'Counter,TicketNumber,Name,Phone,Service,RegisteredAt,CalledAt,Completed\n';
 const REDIS_KEY = 'queue-app-state';
 
 // Change these — either edit the defaults below, or (recommended) set
@@ -418,7 +418,7 @@ app.post('/api/admin/import', requireAdmin, (req, res) => {
   const idxService = col('service');
   const idxRegisteredAt = col('registeredat');
   const idxCalledAt = col('calledat');
-  const idxHelped = col('helped');
+  const idxHelped = col('completed') > -1 ? col('completed') : col('helped'); // accept either header name
 
   if ([idxCounter, idxTicket, idxName, idxPhone, idxService].includes(-1)) {
     return res.status(400).json({ error: 'The header row must include Counter, TicketNumber, Name, Phone, and Service columns.' });

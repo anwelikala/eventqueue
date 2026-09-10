@@ -90,7 +90,7 @@ needs to run a different counter later in the day.
 
 The visitor list on the call desk only shows people queued for the
 selected counter — a Counter A operator never sees Counter B's visitors
-(and can't accidentally call or mark them helped).
+(and can't accidentally call or mark them completed).
 
 ## Visitors with tickets at more than one counter
 
@@ -112,9 +112,9 @@ independent ticket for Counter B.
 
 ## Registered service shown on the ticket
 
-The visitor's own ticket page now shows which service they registered
-for (e.g. "Passport"), right below their number — a quick reminder of
-what they came in for.
+The visitor's own ticket page shows which service they registered for
+(e.g. "Passport"), right below their number — a quick reminder of what
+they came in for.
 
 ## Multi-counter notice on the ticket
 
@@ -125,13 +125,18 @@ page, under "Landing page text," alongside the other ticket text. This
 is intentionally a separate field from the ticket message and the
 registration form's privacy notice, so each can be worded independently.
 
-## Marking visitors as helped
+## Marking visitors as completed
 
-Both the admin page and the call desk page show a **"Mark helped"**
+Both the admin page and the call desk page show a **"Mark completed"**
 button next to each visitor. Click it once someone's finished — it turns
-into a green **"Helped"** badge with an **Undo** link, in case they need
-further help later. This is separate from "Called" status, and either
-password (call desk or admin) can toggle it.
+into a green **"Completed"** badge with an **Undo** link, in case they
+need further help later. This is separate from "Called" status, and
+either password (call desk or admin) can toggle it.
+
+This also round-trips through the CSV export/import as a `Completed`
+column (`true`/`false`). If you have an older CSV file that still says
+`Helped` in its header, importing it still works — both header names are
+accepted.
 
 ## Pausing new registrations
 
@@ -157,11 +162,11 @@ does, since reaching the ticket page always follows a click.
 ## Editing visitor details or reordering a counter's queue
 
 Click **Upload CSV** (next to Download CSV, on the admin page). The CSV
-columns are now: `Counter, TicketNumber, Name, Phone, Service,
-RegisteredAt, CalledAt, Helped`.
+columns are: `Counter, TicketNumber, Name, Phone, Service, RegisteredAt,
+CalledAt, Completed`.
 
 1. **Download CSV** to get the current list (all counters together).
-2. Edit it in Excel/Sheets — fix details, change `Helped`, etc.
+2. Edit it in Excel/Sheets — fix details, change `Completed`, etc.
 3. **To reorder a counter's queue**, edit the numeric part of that
    counter's `TicketNumber` values (e.g. change `A-004` to `A-001`) — the
    call desk always calls a counter's tickets in that exact numeric
@@ -222,9 +227,8 @@ in on startup.
 
 Every registration is saved to whichever store is configured (Upstash if
 set up, otherwise local `state.json`). There's also **`visitors.csv`** —
-a local, append-only log (now including the `Counter` column), not
-cleared by Reset or CSV imports. Neither file is ever committed to
-GitHub — see `.gitignore`.
+a local, append-only log, not cleared by Reset or CSV imports. Neither
+file is ever committed to GitHub — see `.gitignore`.
 
 ## Changing the passwords
 

@@ -1350,8 +1350,8 @@
         <td><span class="status-pill ${v.calledAt ? 'called' : 'waiting'}">${v.calledAt ? 'Called' : 'Waiting'}</span></td>
         <td>
           ${v.helped
-            ? `<span class="status-pill called">Helped</span> <button class="table-action-btn" data-ticket="${escapeHtml(v.ticketNumber)}" data-helped="false">Undo</button>`
-            : `<button class="table-action-btn primary" data-ticket="${escapeHtml(v.ticketNumber)}" data-helped="true">Mark helped</button>`
+            ? `<span class="status-pill called">Completed</span> <button class="table-action-btn" data-ticket="${escapeHtml(v.ticketNumber)}" data-helped="false">Undo</button>`
+            : `<button class="table-action-btn primary" data-ticket="${escapeHtml(v.ticketNumber)}" data-helped="true">Mark completed</button>`
           }
         </td>
       </tr>
@@ -1363,7 +1363,7 @@
             <tr>
               <th>#</th>
               ${showCounterCol ? '<th>Counter</th>' : ''}
-              <th>Name</th><th>Phone</th><th>Needs help with</th><th>Registered</th><th>Called</th><th>Status</th><th>Helped</th>
+              <th>Name</th><th>Phone</th><th>Needs help with</th><th>Registered</th><th>Called</th><th>Status</th><th>Completed</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
