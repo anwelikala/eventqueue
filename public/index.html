@@ -9,334 +9,170 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#1B2440;
-    --ink-soft:#2B3560;
-    --paper:#EFE9DC;
-    --paper-dark:#E3DCC9;
-    --amber:#D8912E;
-    --amber-deep:#B87421;
-    --teal:#2F7A6B;
-    --rust:#B14A29;
-    --board-digit:#F7F4EC;
-    --line: rgba(27,36,64,0.14);
-    --shadow: 0 18px 40px -18px rgba(27,36,64,0.35);
+    --ink:#1B2440; --ink-soft:#2B3560; --paper:#EFE9DC; --paper-dark:#E3DCC9;
+    --amber:#D8912E; --amber-deep:#B87421; --teal:#2F7A6B; --rust:#B14A29;
+    --board-digit:#F7F4EC; --line: rgba(27,36,64,0.14); --shadow: 0 18px 40px -18px rgba(27,36,64,0.35);
     --font-display:'Space Mono', 'Courier New', monospace;
     --font-body:'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
-  body{
-    font-family:var(--font-body);
-    background:var(--paper);
-    color:var(--ink);
-    min-height:100vh;
-    -webkit-font-smoothing:antialiased;
-  }
+  body{font-family:var(--font-body); background:var(--paper); color:var(--ink); min-height:100vh; -webkit-font-smoothing:antialiased;}
   .app{min-height:100vh;display:flex;flex-direction:column;}
 
-  /* ---------- shared bits ---------- */
-  .topline{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:18px 24px; gap:12px;
-    border-bottom:1px solid var(--line);
-  }
+  .topline{display:flex;align-items:center;justify-content:space-between;padding:18px 24px; gap:12px; border-bottom:1px solid var(--line);}
   .brand{display:flex;align-items:baseline;gap:10px;min-width:0;}
-  .brand .mark{
-    font-family:var(--font-display);font-weight:700;
-    background:var(--ink);color:var(--board-digit);
-    padding:4px 8px;border-radius:4px;font-size:13px;letter-spacing:1px;
-    flex-shrink:0;
-  }
-  .brand .title{
-    font-weight:700;font-size:16px;
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;
-  }
-  .home-link{
-    font-size:13px;color:var(--ink-soft);text-decoration:none;
-    border:1px solid var(--line);padding:8px 14px;border-radius:100px;
-    font-weight:600;cursor:pointer;background:transparent;
-    font-family:var(--font-body);flex-shrink:0;
-  }
+  .brand .mark{font-family:var(--font-display);font-weight:700;background:var(--ink);color:var(--board-digit);padding:4px 8px;border-radius:4px;font-size:13px;letter-spacing:1px;flex-shrink:0;}
+  .brand .title{font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+  .home-link{font-size:13px;color:var(--ink-soft);text-decoration:none;border:1px solid var(--line);padding:8px 14px;border-radius:100px;font-weight:600;cursor:pointer;background:transparent;font-family:var(--font-body);flex-shrink:0;}
   .home-link:hover{border-color:var(--ink);}
-  .center-col{
-    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    padding:32px 20px 56px;
-  }
+  .center-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px 56px;}
   button{font-family:var(--font-body);}
-  .primary-btn{
-    background:var(--ink);color:var(--board-digit);
-    border:none;padding:18px 34px;border-radius:14px;
-    font-size:17px;font-weight:700;cursor:pointer;
-    box-shadow:var(--shadow);
-    transition:transform .15s ease, box-shadow .15s ease;
-  }
-  .primary-btn:hover{transform:translateY(-2px);}
-  .primary-btn:active{transform:translateY(0);}
-  .primary-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
-  .ghost-btn{
-    background:transparent;color:var(--ink);border:1.5px solid var(--ink);
-    padding:14px 26px;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;
-  }
-  .rust-btn{
-    background:transparent;color:var(--rust);border:1.5px solid var(--rust);
-    padding:10px 18px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;
-  }
 
-  /* ---------- landing (hero) ---------- */
   .landing-title{font-size:clamp(30px,4.5vw,44px);font-weight:800;margin:0 0 8px;text-align:center;}
-  .landing-sub{color:#5b5f73;font-size:15px;margin:0 0 40px;text-align:center;max-width:480px;}
-  .hero-card{
-    background:var(--ink); color:var(--board-digit);
-    border-radius:24px; padding:56px 60px;
-    box-shadow: 0 30px 60px -20px rgba(27,36,64,0.5);
-    display:flex; flex-direction:column; align-items:center; gap:18px;
-    max-width:420px; width:100%;
-    position:relative; overflow:hidden;
-  }
+  .landing-sub{color:#5b5f73;font-size:15px;margin:0 0 36px;max-width:480px;text-align:center;}
+  .hero-card{background:var(--ink); color:var(--board-digit); border-radius:24px; padding:52px 56px; box-shadow: 0 30px 60px -20px rgba(27,36,64,0.5); display:flex; flex-direction:column; align-items:center; gap:16px; max-width:420px; width:100%; position:relative; overflow:hidden;}
   @media (max-width:520px){ .hero-card{padding:44px 28px;} }
-  .hero-card::before{
-    content:"";position:absolute;top:-40%;right:-30%;width:220px;height:220px;
-    background:radial-gradient(circle, rgba(216,145,46,0.35), transparent 70%);
-  }
-  .hero-icon{
-    width:56px;height:56px;border-radius:16px;background:var(--amber);
-    display:flex;align-items:center;justify-content:center;
-    font-family:var(--font-display);font-weight:700;font-size:26px;color:var(--ink);
-  }
-  .hero-card h2{margin:0;font-size:24px;}
-  .hero-card p{margin:0;font-size:14px;color:rgba(247,244,236,0.7);line-height:1.5;text-align:center;}
-  .hero-btn{
-    margin-top:8px; width:100%;
-    background:var(--amber); color:var(--ink); border:none;
-    padding:20px 28px; border-radius:14px;
-    font-family:var(--font-body); font-size:18px; font-weight:800;
-    cursor:pointer; letter-spacing:0.2px;
-  }
+  .hero-card::before{content:"";position:absolute;top:-40%;right:-30%;width:220px;height:220px;background:radial-gradient(circle, rgba(216,145,46,0.35), transparent 70%);}
+  .hero-icon{width:52px;height:52px;border-radius:15px;background:var(--amber);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:24px;color:var(--ink);}
+  .hero-card h2{margin:0;font-size:22px;}
+  .hero-card p{margin:0;font-size:13px;color:rgba(247,244,236,0.7);line-height:1.5;text-align:center;}
+  .hero-btn{margin-top:8px; width:100%; background:var(--amber); color:var(--ink); border:none; padding:20px 28px; border-radius:14px; font-family:var(--font-body); font-size:18px; font-weight:800; cursor:pointer; letter-spacing:0.2px;}
 
-  .board-card{
-    margin-top:16px;
-    display:flex; align-items:center; gap:16px; text-align:left;
-    background:#fff; border:1px solid var(--line); border-radius:18px;
-    padding:18px 22px; max-width:420px; width:100%;
-    box-shadow:var(--shadow); cursor:pointer;
-    font-family:var(--font-body);
-    transition:transform .15s ease;
-  }
+  .board-card{margin-top:16px; display:flex; align-items:center; gap:16px; text-align:left; background:#fff; border:1px solid var(--line); border-radius:18px; padding:18px 22px; max-width:420px; width:100%; box-shadow:var(--shadow); cursor:pointer; font-family:var(--font-body); transition:transform .15s ease;}
   .board-card:hover{transform:translateY(-2px);}
-  .board-card .icon{
-    width:42px;height:42px;border-radius:12px;background:var(--ink);
-    display:flex;align-items:center;justify-content:center; flex-shrink:0;
-    font-family:var(--font-display);font-weight:700;font-size:18px;color:var(--board-digit);
-  }
+  .board-card .icon{width:42px;height:42px;border-radius:12px;background:var(--ink);display:flex;align-items:center;justify-content:center; flex-shrink:0; font-family:var(--font-display);font-weight:700;font-size:18px;color:var(--board-digit);}
   .board-card h3{margin:0 0 3px;font-size:15px;color:var(--ink);}
   .board-card p{margin:0;font-size:13px;color:#8a8d9e;}
 
-  .page-footer{
-    display:flex; justify-content:center; align-items:center; gap:14px;
-    padding:20px; border-top:1px solid var(--line);
-    font-size:13px; color:#8a8d9e;
-  }
-  .page-footer button{
-    background:none; border:none; color:#8a8d9e; font-size:13px;
-    cursor:pointer; text-decoration:underline; font-family:var(--font-body); padding:0;
-  }
+  .page-footer{display:flex; justify-content:center; align-items:center; gap:14px; padding:20px; border-top:1px solid var(--line); font-size:13px; color:#8a8d9e;}
+  .page-footer button{background:none; border:none; color:#8a8d9e; font-size:13px; cursor:pointer; text-decoration:underline; font-family:var(--font-body); padding:0;}
   .page-footer button:hover{ color:var(--ink-soft); }
   .page-footer .sep{color:var(--line);}
 
-  /* ---------- forms (register + password gates) ---------- */
-  .form-card{
-    background:#fff;border-radius:18px;padding:40px 34px;text-align:left;
-    box-shadow:var(--shadow);max-width:420px;width:100%;
-  }
+  .ticket-chip-row{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:18px; max-width:460px; }
+  .ticket-chip{ background:#fff; border:1.5px solid var(--line); color:var(--ink-soft); padding:8px 14px; border-radius:100px; font-size:12px; font-weight:700; cursor:pointer; font-family:var(--font-body); }
+  .ticket-chip:hover{ border-color:var(--ink); color:var(--ink); }
+
+  .form-card{background:#fff;border-radius:18px;padding:40px 34px;text-align:left;box-shadow:var(--shadow);max-width:420px;width:100%;}
   .form-card h2{margin:0 0 8px;font-size:22px;text-align:center;}
   .form-card > p.intro{margin:0 0 24px;color:#5b5f73;font-size:14px;line-height:1.55;text-align:center;}
   label.field-label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8a8d9e;margin-bottom:8px;}
   .field-group{margin-bottom:18px;}
-  input.text-input, select.text-input{
-    width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);
-    font-size:15px;font-family:var(--font-body);background:#fff;
-  }
+  input.text-input, select.text-input{width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);font-size:15px;font-family:var(--font-body);background:#fff;}
+  optgroup{font-weight:700;color:var(--ink);font-style:normal;}
   input.text-input:focus, select.text-input:focus{outline:2px solid var(--amber);outline-offset:1px;border-color:var(--amber);}
   .field-error{color:var(--rust);font-size:13px;margin:-10px 0 16px;display:none;}
   .field-error.show{display:block;}
   .privacy-note{margin:16px 0 0;font-size:12px;line-height:1.5;color:#8a8d9e;text-align:center;}
 
-  /* ---------- ticket ---------- */
   .ticket-wrap{width:100%;max-width:380px;}
-  .ticket{
-    position:relative;background:#fff;border-radius:4px;
-    padding:36px 28px 30px;text-align:center;
-    box-shadow:var(--shadow);
-    background-image: repeating-linear-gradient(180deg, transparent, transparent 27px, rgba(27,36,64,0.05) 28px);
-  }
-  .ticket::before, .ticket::after{
-    content:"";position:absolute;top:50%;transform:translateY(-50%);
-    width:24px;height:24px;background:var(--paper);border-radius:50%;
-  }
-  .ticket::before{left:-12px;}
-  .ticket::after{right:-12px;}
+  .ticket{position:relative;background:#fff;border-radius:4px;padding:36px 28px 30px;text-align:center;box-shadow:var(--shadow);background-image: repeating-linear-gradient(180deg, transparent, transparent 27px, rgba(27,36,64,0.05) 28px);}
+  .ticket::before, .ticket::after{content:"";position:absolute;top:50%;transform:translateY(-50%);width:24px;height:24px;background:var(--paper);border-radius:50%;}
+  .ticket::before{left:-12px;} .ticket::after{right:-12px;}
   .ticket .perf{position:absolute;left:14px;right:14px;top:0;height:0;border-top:2px dashed var(--line);}
-  .ticket-eyebrow{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--amber-deep);font-weight:700;margin-bottom:14px;}
-  .ticket-number{
-    font-family:var(--font-display);font-weight:700;font-size:88px;line-height:1;
-    color:var(--ink);margin:6px 0 10px;letter-spacing:2px;
-  }
-  .ticket-hint{font-size:14px;color:#5b5f73;margin:0 0 18px;line-height:1.5;}
+  .ticket-eyebrow{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--amber-deep);font-weight:700;margin-bottom:10px;}
+  .counter-tag{display:inline-block; background:var(--ink); color:var(--board-digit); font-size:11px; font-weight:700; padding:4px 12px; border-radius:100px; letter-spacing:0.5px; margin-bottom:10px;}
+  .ticket-number{font-family:var(--font-display);font-weight:700;font-size:76px;line-height:1;color:var(--ink);margin:2px 0 10px;letter-spacing:2px;}
+  .ticket-hint{font-size:14px;color:#5b5f73;margin:0 0 6px;line-height:1.5;}
   .ticket-divider{border-top:2px dashed var(--line);margin:18px 0;}
-  .ticket-meta{display:flex;justify-content:space-between;font-size:12px;color:#8a8d9e;text-transform:uppercase;letter-spacing:1px;}
-  .ahead-pill{
-    display:inline-block;margin-top:16px;background:var(--paper-dark);
-    padding:8px 16px;border-radius:100px;font-size:13px;font-weight:700;color:var(--ink-soft);
-  }
+  .ticket-meta{font-size:12px;color:#8a8d9e;text-transform:uppercase;letter-spacing:1px;text-align:center;}
+  .ahead-pill{display:inline-block;margin-top:16px;background:var(--paper-dark);padding:8px 16px;border-radius:100px;font-size:13px;font-weight:700;color:var(--ink-soft);}
   .ahead-pill.turn{background:#DCEEE8;color:var(--teal);}
   .ahead-pill.passed{background:#F5DCC9;color:var(--rust);}
-  .mini-board{
-    position:relative; overflow:hidden;
-    background:var(--ink); border-radius:18px; margin-top:16px; padding:22px 20px;
-    text-align:center; box-shadow:var(--shadow);
-  }
+
+  .mini-board{position:relative; overflow:hidden; background:var(--ink); border-radius:18px; margin-top:16px; padding:22px 20px; text-align:center; box-shadow:var(--shadow);}
   .mini-label{font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--amber);font-weight:700;position:relative;z-index:2;}
-  .mini-number{
-    font-family:var(--font-display);font-weight:700;font-size:56px;line-height:1.2;
-    color:var(--board-digit); position:relative; z-index:2;
-  }
+  .mini-number{font-family:var(--font-display);font-weight:700;font-size:56px;line-height:1.2;color:var(--board-digit); position:relative; z-index:2;}
   .mini-number.pulse{ animation:miniPulse 900ms ease; }
   @media (prefers-reduced-motion: reduce){ .mini-number.pulse{ animation:none; } }
-  @keyframes miniPulse{
-    0%{ transform:scale(1); text-shadow:0 0 0 rgba(216,145,46,0); }
-    35%{ transform:scale(1.08); text-shadow:0 0 30px rgba(216,145,46,0.6); }
-    100%{ transform:scale(1); text-shadow:0 0 0 rgba(216,145,46,0); }
-  }
-  .mini-ring{
-    position:absolute; top:50%; left:50%; width:50px; height:50px;
-    border:3px solid var(--amber); border-radius:50%;
-    transform:translate(-50%,-50%) scale(0.3); opacity:0; pointer-events:none; z-index:1;
-  }
+  @keyframes miniPulse{ 0%{ transform:scale(1); text-shadow:0 0 0 rgba(216,145,46,0); } 35%{ transform:scale(1.08); text-shadow:0 0 30px rgba(216,145,46,0.6); } 100%{ transform:scale(1); text-shadow:0 0 0 rgba(216,145,46,0); } }
+  .mini-ring{position:absolute; top:50%; left:50%; width:50px; height:50px; border:3px solid var(--amber); border-radius:50%; transform:translate(-50%,-50%) scale(0.3); opacity:0; pointer-events:none; z-index:1;}
   .mini-ring.go{ animation:miniRipple 1000ms ease-out; }
-  .mini-ring.go.r2{ animation-delay:130ms; }
-  .mini-ring.go.r3{ animation-delay:260ms; }
+  .mini-ring.go.r2{ animation-delay:130ms; } .mini-ring.go.r3{ animation-delay:260ms; }
   @media (prefers-reduced-motion: reduce){ .mini-ring.go{ animation:none; } }
-  @keyframes miniRipple{
-    0%{ transform:translate(-50%,-50%) scale(0.3); opacity:0.8; }
-    100%{ transform:translate(-50%,-50%) scale(6); opacity:0; }
-  }
+  @keyframes miniRipple{ 0%{ transform:translate(-50%,-50%) scale(0.3); opacity:0.8; } 100%{ transform:translate(-50%,-50%) scale(6); opacity:0; } }
 
-  /* ---------- display board ---------- */
   .board-view{background:var(--ink);color:var(--board-digit);flex:1;display:flex;flex-direction:column;position:relative;}
   .board-view .topline{border-bottom:1px solid rgba(247,244,236,0.14);}
   .board-view .brand .mark{background:var(--amber);color:var(--ink);}
   .board-view .brand .title{color:var(--board-digit);}
   .board-view .home-link{color:var(--board-digit);border-color:rgba(247,244,236,0.35);}
   .board-view .home-link:hover{border-color:var(--board-digit);}
-  .board-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;position:relative;}
-  .serving-label{font-size:clamp(16px,2.6vw,22px);letter-spacing:6px;text-transform:uppercase;color:var(--amber);font-weight:700;position:relative;z-index:2;}
-  .serving-number{
-    font-family:var(--font-display);font-weight:700;
-    font-size:clamp(120px,26vw,300px);line-height:1;color:var(--board-digit);
-    position:relative;z-index:2;
-  }
+  .board-columns{flex:1; display:flex; flex-wrap:wrap; align-items:stretch;}
+  .board-panel{flex:1; min-width:260px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:24px 16px; position:relative; border-right:1px solid rgba(247,244,236,0.12);}
+  .board-panel:last-child{border-right:none;}
+  .board-clabel{font-size:13px;letter-spacing:3px;text-transform:uppercase;color:rgba(247,244,236,0.65);font-weight:700;position:relative;z-index:2;}
+  .serving-label{font-size:clamp(14px,2vw,18px);letter-spacing:5px;text-transform:uppercase;color:var(--amber);font-weight:700;position:relative;z-index:2;}
+  .serving-number{font-family:var(--font-display);font-weight:700;font-size:clamp(70px,14vw,150px);line-height:1;color:var(--board-digit);position:relative;z-index:2;}
   .serving-number.pulse{animation:pulse 900ms ease;}
   @media (prefers-reduced-motion: reduce){ .serving-number.pulse{animation:none;} }
-  @keyframes pulse{
-    0%{ transform:scale(1); text-shadow: 0 0 0 rgba(216,145,46,0); }
-    35%{ transform:scale(1.05); text-shadow: 0 0 60px rgba(216,145,46,0.55); }
-    100%{ transform:scale(1); text-shadow: 0 0 0 rgba(216,145,46,0); }
-  }
-  .ripple-ring{
-    position:absolute; top:50%; left:50%; width:120px; height:120px;
-    border:4px solid var(--amber); border-radius:50%;
-    transform:translate(-50%,-50%) scale(0.3); opacity:0; pointer-events:none; z-index:1;
-  }
+  @keyframes pulse{ 0%{ transform:scale(1); text-shadow: 0 0 0 rgba(216,145,46,0); } 35%{ transform:scale(1.05); text-shadow: 0 0 60px rgba(216,145,46,0.55); } 100%{ transform:scale(1); text-shadow: 0 0 0 rgba(216,145,46,0); } }
+  .ripple-ring{position:absolute; top:50%; left:50%; width:100px; height:100px; border:4px solid var(--amber); border-radius:50%; transform:translate(-50%,-50%) scale(0.3); opacity:0; pointer-events:none; z-index:1;}
   .ripple-ring.go{ animation:rippleGo 1100ms ease-out; }
-  .ripple-ring.go.r2{ animation-delay:150ms; }
-  .ripple-ring.go.r3{ animation-delay:300ms; }
+  .ripple-ring.go.r2{ animation-delay:150ms; } .ripple-ring.go.r3{ animation-delay:300ms; }
   @media (prefers-reduced-motion: reduce){ .ripple-ring.go{ animation:none; } }
-  @keyframes rippleGo{
-    0%{ transform:translate(-50%,-50%) scale(0.3); opacity:0.8; }
-    100%{ transform:translate(-50%,-50%) scale(5.5); opacity:0; }
-  }
-  .board-sub{font-size:15px;color:rgba(247,244,236,0.6);position:relative;z-index:2;}
+  @keyframes rippleGo{ 0%{ transform:translate(-50%,-50%) scale(0.3); opacity:0.8; } 100%{ transform:translate(-50%,-50%) scale(5); opacity:0; } }
+  .board-sub{font-size:14px;color:rgba(247,244,236,0.6);position:relative;z-index:2;}
   .board-footer{text-align:center;padding:18px;font-size:12px;color:rgba(247,244,236,0.4);letter-spacing:1px;text-transform:uppercase;}
-  .sound-banner{
-    display:block; width:100%; border:none; cursor:pointer;
-    background:var(--amber); color:var(--ink);
-    font-family:var(--font-body); font-weight:700; font-size:14px;
-    padding:12px; text-align:center;
-  }
+  .sound-banner{display:block; width:100%; border:none; cursor:pointer; background:var(--amber); color:var(--ink); font-family:var(--font-body); font-weight:700; font-size:14px; padding:12px; text-align:center;}
   .sound-banner:hover{ filter:brightness(1.05); }
 
-  /* ---------- call desk + admin panels ---------- */
-  .panel-grid{
-    display:grid;grid-template-columns:1.1fr 0.9fr;gap:22px;
-    max-width:880px;width:100%;
-  }
+  .counter-choice{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-top:16px; }
+  .counter-choice button{background:#fff; border:2px solid var(--ink); color:var(--ink); font-weight:800; font-size:15px; padding:20px 26px; border-radius:14px; cursor:pointer; font-family:var(--font-body); min-width:150px;}
+  .counter-choice button:hover{ background:var(--ink); color:var(--board-digit); }
+  .switch-counter-link{background:none;border:none;color:#8a8d9e;font-size:12px;cursor:pointer;text-decoration:underline;font-family:var(--font-body);margin-top:14px;}
+
+  .panel-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:22px;max-width:1240px;width:100%;}
   @media (max-width:760px){ .panel-grid{grid-template-columns:1fr;} }
   .panel{background:#fff;border-radius:18px;padding:28px;box-shadow:var(--shadow);}
   .panel h3{margin:0 0 4px;font-size:14px;text-transform:uppercase;letter-spacing:1.5px;color:#8a8d9e;}
-  .stat-row{display:flex;gap:16px;margin-top:18px;}
-  .stat{flex:1;background:var(--paper);border-radius:14px;padding:16px;text-align:center;}
-  .stat .num{font-family:var(--font-display);font-weight:700;font-size:34px;}
+  .stat-row{display:flex;gap:16px;margin-top:18px;flex-wrap:wrap;}
+  .stat{flex:1;min-width:100px;background:var(--paper);border-radius:14px;padding:16px;text-align:center;}
+  .stat .num{font-family:var(--font-display);font-weight:700;font-size:28px;}
   .stat .lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#8a8d9e;margin-top:4px;}
+  .counter-stat-block{margin-top:18px;}
+  .counter-stat-block h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--ink-soft);}
   .call-next-btn{width:100%;margin-top:22px;padding:22px;font-size:20px;border-radius:16px;}
   .btn-row{display:flex;gap:10px;margin-top:12px;}
   .btn-row .ghost-btn{flex:1;}
+  .ghost-btn{background:transparent;color:var(--ink);border:1.5px solid var(--ink);padding:14px 26px;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;}
+  .rust-btn{background:transparent;color:var(--rust);border:1.5px solid var(--rust);padding:10px 18px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;}
   .save-row{display:flex;gap:10px;margin-top:12px;}
   .danger-zone{margin-top:26px;padding-top:20px;border-top:1px solid var(--line);}
   .danger-zone p{font-size:13px;color:#8a8d9e;margin:0 0 12px;}
   .wide-panel{max-width:1240px;width:100%;}
 
-  /* ---------- visitor table ---------- */
+  .service-group{background:var(--paper);border-radius:14px;padding:16px 18px;margin-bottom:14px;}
+  .service-group h4{margin:0 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--ink-soft);}
+  .service-group .sub{font-size:11px;color:#8a8d9e;margin:0 0 10px;}
+  .service-chip-list{display:flex;flex-wrap:wrap;gap:8px;}
+  .service-chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border-radius:100px;padding:8px 8px 8px 14px;font-size:13px;margin:0;}
+  .chip-remove{background:none;border:none;color:var(--rust);font-size:16px;line-height:1;cursor:pointer;padding:2px 6px;font-weight:700;}
+  .chip-remove:hover{color:#fff;background:var(--rust);border-radius:50%;}
+  .counter-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+  .counter-row input{max-width:160px;}
+  .counter-row input.prefix-input{max-width:70px;}
+
   .table-scroll{overflow-x:auto;margin-top:18px;}
-  table.visitor-table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:660px;}
-  table.visitor-table th{
-    text-align:left;padding:8px 8px;font-size:11px;text-transform:uppercase;
-    letter-spacing:0.5px;color:#8a8d9e;border-bottom:1.5px solid var(--line);
-  }
+  table.visitor-table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:700px;}
+  table.visitor-table th{text-align:left;padding:8px 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#8a8d9e;border-bottom:1.5px solid var(--line);}
   table.visitor-table td{padding:8px 8px;border-bottom:1px solid var(--line);vertical-align:top;white-space:nowrap;}
-  table.visitor-table td.service-cell{
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-    max-width:160px;
-  }
+  table.visitor-table td.service-cell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;}
   table.visitor-table tr:last-child td{border-bottom:none;}
   .status-pill{display:inline-block;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;}
   .status-pill.waiting{background:var(--paper-dark);color:var(--ink-soft);}
   .status-pill.called{background:#DCEEE8;color:var(--teal);}
   .status-pill.active{background:#DCEEE8;color:var(--teal);}
   .status-pill.paused{background:#F5DCC9;color:var(--rust);}
-  .table-action-btn{
-    background:transparent;border:1.5px solid var(--line);color:var(--ink-soft);
-    padding:5px 12px;border-radius:100px;font-size:11px;font-weight:700;
-    cursor:pointer;font-family:var(--font-body);
-  }
+  .table-action-btn{background:transparent;border:1.5px solid var(--line);color:var(--ink-soft);padding:5px 12px;border-radius:100px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font-body);}
   .table-action-btn.primary{border-color:var(--teal);color:var(--teal);}
   .table-action-btn:hover{border-color:var(--ink);color:var(--ink);}
   .empty-note{color:#8a8d9e;font-size:14px;margin-top:18px;text-align:center;}
 
-  /* ---------- service chips (admin) ---------- */
-  .service-chip-list{display:flex;flex-wrap:wrap;gap:8px;}
-  .service-chip{
-    display:inline-flex;align-items:center;gap:8px;
-    background:var(--paper);border-radius:100px;
-    padding:8px 8px 8px 14px;font-size:13px;
-  }
-  .service-chip span{max-width:320px;}
-  .chip-remove{
-    background:none;border:none;color:var(--rust);font-size:16px;line-height:1;
-    cursor:pointer;padding:2px 6px;font-weight:700;
-  }
-  .chip-remove:hover{color:#fff;background:var(--rust);border-radius:50%;}
-
-  .toast{
-    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-    background:var(--ink);color:var(--board-digit);padding:12px 22px;border-radius:100px;
-    font-size:14px;font-weight:600;box-shadow:var(--shadow);opacity:0;pointer-events:none;
-    transition:opacity .25s ease, transform .25s ease;
-  }
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--board-digit);padding:12px 22px;border-radius:100px;font-size:14px;font-weight:600;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
-  .offline-banner{
-    background:var(--rust);color:#fff;text-align:center;font-size:13px;font-weight:600;
-    padding:8px;display:none;
-  }
+  .offline-banner{background:var(--rust);color:#fff;text-align:center;font-size:13px;font-weight:600;padding:8px;display:none;}
   .offline-banner.show{display:block;}
 </style>
 </head>
@@ -348,15 +184,14 @@
 
 <script>
 (function(){
-  const OTHER_VALUE = '__other__';
-  let state = { title: 'Queue', welcomeMessage: '', services: [], lastIssued: 0, nowServing: 0, updatedAt: 0 };
+  const OTHER_PREFIX = '__other__::';
+
+  let state = { title: 'Queue', welcomeMessage:'', ticketMessage:'', privacyNotice:'', counters: [], services: [], registrationPaused:false, pausedMessage:'', updatedAt:0 };
   let view = 'landing';
-  let myTicket = null;
+  let myCounterId = null, myTicketNumber = null, myCounterSeq = null;
   let pollTimer = null;
-  let lastServingSeen = null;
-  let lastRecallSeen = null;
-  let ticketServingSeen = null;
-  let ticketRecallSeen = null;
+  let ticketServingSeen = null, ticketRecallSeen = null;
+  let boardTrack = {}; // { [counterId]: { serving, recall } }
 
   const app = document.getElementById('app');
   const toastEl = document.getElementById('toast');
@@ -368,9 +203,7 @@
     clearTimeout(showToast._t);
     showToast._t = setTimeout(()=> toastEl.classList.remove('show'), 2200);
   }
-  function setOffline(isOffline){
-    offlineBanner.classList.toggle('show', isOffline);
-  }
+  function setOffline(isOffline){ offlineBanner.classList.toggle('show', isOffline); }
   function escapeHtml(s){
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
@@ -380,8 +213,6 @@
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
   function isValidPhone(phone){
-    // Allow digits, spaces, +, -, ( ) — e.g. "+46 70 123 45 67" or "(011) 234-5678".
-    // Reject anything else (letters, symbols) and require at least 7 digits total.
     if(!/^[0-9+\-()\s]+$/.test(phone)) return false;
     const digitCount = (phone.match(/\d/g) || []).length;
     return digitCount >= 7 && digitCount <= 15;
@@ -389,36 +220,32 @@
   function isValidName(name){
     const trimmed = name.trim();
     if(trimmed.length < 2) return false;
-    // Letters (any language/script), spaces, apostrophes, hyphens, periods —
-    // covers names like "Anne-Marie O'Connor" or "J. Fernando" without
-    // allowing digits or symbol strings.
     if(!/^[\p{L}][\p{L}\s'’\-.]*$/u.test(trimmed)) return false;
-    // Reject a single letter repeated the whole way through (e.g. "aaaa").
     const lettersOnly = trimmed.replace(/[^\p{L}]/gu, '').toLowerCase();
     if(lettersOnly.length > 0 && /^(.)\1+$/u.test(lettersOnly)) return false;
     return true;
   }
+  function counterById(id){ return (state.counters || []).find(c => c.id === id); }
 
-  // One ticket per device: remembered in localStorage (persists across
-  // browser restarts, unlike sessionStorage) so reloading or revisiting
-  // doesn't let the same visitor pull a second number. Admins (logged into
-  // the admin page on this device) are exempt, so staff can test freely.
-  const DEVICE_TICKET_KEY = 'queueDeviceTicket';
-  function getStoredTicket(){
+  // Device tickets: one ticket per counter per device, remembered in
+  // localStorage (persists across browser restarts). Shape:
+  // { [counterId]: { ticketNumber, counterSeq } }
+  const DEVICE_TICKETS_KEY = 'queueDeviceTickets';
+  function getStoredTickets(){
     try{
-      const raw = localStorage.getItem(DEVICE_TICKET_KEY);
-      return raw ? JSON.parse(raw) : null;
-    }catch(e){ return null; }
+      const raw = localStorage.getItem(DEVICE_TICKETS_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
   }
-  function storeTicket(ticket){
-    try{ localStorage.setItem(DEVICE_TICKET_KEY, JSON.stringify(ticket)); }catch(e){ /* ignore */ }
+  function storeTickets(map){
+    try{ localStorage.setItem(DEVICE_TICKETS_KEY, JSON.stringify(map)); }catch(e){ /* ignore */ }
   }
-  function clearStoredTicket(){
-    try{ localStorage.removeItem(DEVICE_TICKET_KEY); }catch(e){ /* ignore */ }
+  function saveDeviceTicket(counterId, ticketNumber, counterSeq){
+    const map = getStoredTickets();
+    map[counterId] = { ticketNumber, counterSeq };
+    storeTickets(map);
   }
-  function isAdminLoggedIn(){
-    return !!sessionStorage.getItem('adminPassword');
-  }
+  function isAdminLoggedIn(){ return !!sessionStorage.getItem('adminPassword'); }
 
   async function apiCall(path, opts){
     try{
@@ -431,12 +258,19 @@
       throw err;
     }
   }
+  function authHeaders(kind){
+    const pw = sessionStorage.getItem(kind + 'Password') || '';
+    return { 'x-app-password': pw };
+  }
+  function handleAuthFailure(kind){
+    sessionStorage.removeItem(kind + 'Password');
+    if(kind === 'call') sessionStorage.removeItem('callCounterId');
+    showToast('Password no longer valid — please log in again.');
+    goto(kind === 'call' ? 'call-login' : 'admin-login');
+  }
 
   const api = {
     getState: async () => (await apiCall('/api/state')).json(),
-    register: async (payload) => (await apiCall('/api/register', {
-      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
-    })).json(),
 
     callLogin: async (password) => (await apiCall('/api/call/login', {
       method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password })
@@ -446,27 +280,23 @@
       if(res.status === 401){ handleAuthFailure('call'); throw new Error('unauthorized'); }
       return res.json();
     },
-    callNext: async () => {
-      const res = await apiCall('/api/call/next', { method:'POST', headers: authHeaders('call') });
+    callNext: async (counterId) => {
+      const res = await apiCall('/api/call/next', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('call')), body: JSON.stringify({ counterId }) });
       if(res.status === 401){ handleAuthFailure('call'); throw new Error('unauthorized'); }
       return res.json();
     },
-    callRecall: async () => {
-      const res = await apiCall('/api/call/recall', { method:'POST', headers: authHeaders('call') });
+    callRecall: async (counterId) => {
+      const res = await apiCall('/api/call/recall', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('call')), body: JSON.stringify({ counterId }) });
       if(res.status === 401){ handleAuthFailure('call'); throw new Error('unauthorized'); }
       return res.json();
     },
-    callVisitors: async () => {
-      const res = await apiCall('/api/call/visitors', { headers: authHeaders('call') });
+    callVisitors: async (counterId) => {
+      const res = await apiCall('/api/call/visitors?counterId=' + encodeURIComponent(counterId), { headers: authHeaders('call') });
       if(res.status === 401){ handleAuthFailure('call'); throw new Error('unauthorized'); }
       return res.json();
     },
-    callToggleHelped: async (number, helped) => {
-      const res = await apiCall('/api/call/visitors/helped', {
-        method:'POST',
-        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('call')),
-        body: JSON.stringify({ number, helped })
-      });
+    callToggleHelped: async (ticketNumber, helped) => {
+      const res = await apiCall('/api/call/visitors/helped', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('call')), body: JSON.stringify({ ticketNumber, helped }) });
       if(res.status === 401){ handleAuthFailure('call'); throw new Error('unauthorized'); }
       return res.json();
     },
@@ -479,93 +309,67 @@
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
       return res.json();
     },
-    adminToggleHelped: async (number, helped) => {
-      const res = await apiCall('/api/admin/visitors/helped', {
-        method:'POST',
-        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
-        body: JSON.stringify({ number, helped })
-      });
+    adminToggleHelped: async (ticketNumber, helped) => {
+      const res = await apiCall('/api/admin/visitors/helped', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')), body: JSON.stringify({ ticketNumber, helped }) });
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
       return res.json();
     },
     adminSetTitle: async (title) => {
-      const res = await apiCall('/api/admin/title', {
-        method:'POST',
-        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
-        body: JSON.stringify({ title })
-      });
+      const res = await apiCall('/api/admin/title', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')), body: JSON.stringify({ title }) });
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
       return res.json();
     },
     adminSetWelcome: async (message) => {
-      const res = await apiCall('/api/admin/welcome', {
-        method:'POST',
-        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
-        body: JSON.stringify({ message })
-      });
+      const res = await apiCall('/api/admin/welcome', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')), body: JSON.stringify({ message }) });
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
       return res.json();
     },
     adminSetTicketMessage: async (message) => {
-      const res = await apiCall('/api/admin/ticket-message', {
-        method:'POST',
-        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
-        body: JSON.stringify({ message })
-      });
+      const res = await apiCall('/api/admin/ticket-message', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')), body: JSON.stringify({ message }) });
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
       return res.json();
     },
     adminSetPrivacyNotice: async (message) => {
-      const res = await apiCall('/api/admin/privacy-notice', {
-        method:'POST',
-        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
-        body: JSON.stringify({ message })
-      });
+      const res = await apiCall('/api/admin/privacy-notice', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')), body: JSON.stringify({ message }) });
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
       return res.json();
     },
     adminSetPause: async (paused) => {
-      const res = await apiCall('/api/admin/pause', {
-        method:'POST',
-        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
-        body: JSON.stringify({ paused })
-      });
+      const res = await apiCall('/api/admin/pause', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')), body: JSON.stringify({ paused }) });
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
       return res.json();
     },
     adminSetPauseMessage: async (message) => {
-      const res = await apiCall('/api/admin/pause-message', {
-        method:'POST',
-        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
-        body: JSON.stringify({ message })
-      });
+      const res = await apiCall('/api/admin/pause-message', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')), body: JSON.stringify({ message }) });
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
       return res.json();
     },
-    adminAddService: async (service) => {
-      const res = await apiCall('/api/admin/services/add', {
-        method:'POST',
-        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
-        body: JSON.stringify({ service })
-      });
+    adminAddService: async (service, counterId) => {
+      const res = await apiCall('/api/admin/services/add', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')), body: JSON.stringify({ service, counterId }) });
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
       return res.json();
     },
     adminRemoveService: async (service) => {
-      const res = await apiCall('/api/admin/services/remove', {
-        method:'POST',
-        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
-        body: JSON.stringify({ service })
-      });
+      const res = await apiCall('/api/admin/services/remove', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')), body: JSON.stringify({ service }) });
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
       return res.json();
     },
+    adminAddCounter: async (label, prefix, allowOther) => {
+      const res = await apiCall('/api/admin/counters/add', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')), body: JSON.stringify({ label, prefix, allowOther }) });
+      if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
+      return res.json();
+    },
+    adminUpdateCounter: async (id, patch) => {
+      const res = await apiCall('/api/admin/counters/update', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')), body: JSON.stringify(Object.assign({ id }, patch)) });
+      if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
+      return res.json();
+    },
+    adminRemoveCounter: async (id) => {
+      const res = await apiCall('/api/admin/counters/remove', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')), body: JSON.stringify({ id }) });
+      return res;
+    },
     adminImportVisitors: async (csvText) => {
-      const res = await apiCall('/api/admin/import', {
-        method:'POST',
-        headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')),
-        body: JSON.stringify({ csv: csvText })
-      });
+      const res = await apiCall('/api/admin/import', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')), body: JSON.stringify({ csv: csvText }) });
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
       return res.json();
     },
@@ -576,30 +380,14 @@
     }
   };
 
-  function authHeaders(kind){
-    const pw = sessionStorage.getItem(kind + 'Password') || '';
-    return { 'x-app-password': pw };
-  }
-  function handleAuthFailure(kind){
-    sessionStorage.removeItem(kind + 'Password');
-    showToast('Password no longer valid — please log in again.');
-    goto(kind === 'call' ? 'call-login' : 'admin-login');
-  }
-
   function startPolling(renderFn){
     stopPolling();
     pollTimer = setInterval(async ()=>{
       try{ await renderFn(true); }catch(e){ /* handled inside */ }
     }, 2500);
   }
-  function stopPolling(){
-    if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
-  }
-  function goto(v){
-    stopPolling();
-    view = v;
-    render();
-  }
+  function stopPolling(){ if(pollTimer){ clearInterval(pollTimer); pollTimer = null; } }
+  function goto(v){ stopPolling(); view = v; render(); }
 
   function topline(homeVisible){
     return `
@@ -613,19 +401,23 @@
     `;
   }
 
-  /* ---------------- LANDING (hero + board card + footer) ---------------- */
+  /* ---------------- LANDING ---------------- */
   function renderLanding(){
     const paused = state.registrationPaused;
-    const stored = getStoredTicket();
-    const hasExistingTicket = stored && Number.isInteger(stored.number) && stored.number <= state.lastIssued;
+    const counters = state.counters || [];
+    const tickets = getStoredTickets();
+    const validEntries = counters
+      .map(c => ({ counter: c, t: tickets[c.id] }))
+      .filter(x => x.t && Number.isInteger(x.t.counterSeq) && x.t.counterSeq <= x.counter.lastIssued);
+    const allCovered = counters.length > 0 && validEntries.length === counters.length;
 
     let heroHtml;
-    if(hasExistingTicket){
+    if(allCovered){
       heroHtml = `
         <div class="hero-icon">#</div>
-        <h2>View my number</h2>
-        <p>You already have a number on this device.</p>
-        <button class="hero-btn" id="hero-register-btn">View my number</button>
+        <h2>View my numbers</h2>
+        <p>You already have a number for every counter here.</p>
+        <button class="hero-btn" id="hero-mytickets-btn">View my numbers</button>
       `;
     } else if(paused){
       heroHtml = `
@@ -648,9 +440,13 @@
         <h1 class="landing-title">Welcome</h1>
         <p class="landing-sub">${escapeHtml(state.welcomeMessage || "Choose what you're here to do.")}</p>
 
-        <div class="hero-card">
-          ${heroHtml}
-        </div>
+        <div class="hero-card">${heroHtml}</div>
+
+        ${(!allCovered && validEntries.length > 0) ? `
+          <div class="ticket-chip-row">
+            ${validEntries.map(x => `<button class="ticket-chip" data-counter="${x.counter.id}">${escapeHtml(x.counter.label)}: ${escapeHtml(x.t.ticketNumber)} →</button>`).join('')}
+          </div>
+        ` : ''}
 
         <button class="board-card" onclick="__app.goto('display')">
           <div class="icon">▤</div>
@@ -666,40 +462,72 @@
         <button onclick="__app.goto(sessionStorage.getItem('adminPassword') ? 'admin-panel' : 'admin-login')">Admin</button>
       </div>
     `;
-    if(hasExistingTicket || !paused){
-      document.getElementById('hero-register-btn').onclick = openRegister;
-    }
+    const registerBtn = document.getElementById('hero-register-btn');
+    if(registerBtn) registerBtn.onclick = openRegisterFlow;
+    const myTicketsBtn = document.getElementById('hero-mytickets-btn');
+    if(myTicketsBtn) myTicketsBtn.onclick = openRegisterFlow;
+    app.querySelectorAll('.ticket-chip').forEach(btn=>{
+      btn.onclick = () => openTicketForCounter(btn.getAttribute('data-counter'));
+    });
   }
 
-
-  /* ---------------- REGISTER ---------------- */
-  async function openRegister(){
+  /* ---------------- REGISTER FLOW ---------------- */
+  async function openRegisterFlow(){
     stopPolling();
     try{ state = await api.getState(); }catch(e){ /* fall back to cached state */ }
 
-    const stored = getStoredTicket();
-    const storedStillValid = stored && Number.isInteger(stored.number) && stored.number <= state.lastIssued;
-    if(storedStillValid && !isAdminLoggedIn()){
-      myTicket = stored.number;
-      enableSound();
-      renderTicket();
-      startPolling(pollTicketUpdate);
+    const counters = state.counters || [];
+    const tickets = getStoredTickets();
+    const validEntries = counters
+      .map(c => ({ counter: c, t: tickets[c.id] }))
+      .filter(x => x.t && Number.isInteger(x.t.counterSeq) && x.t.counterSeq <= x.counter.lastIssued);
+    // Prune stale entries (e.g. after a reset) so they don't linger forever.
+    const prunedMap = {};
+    validEntries.forEach(x => { prunedMap[x.counter.id] = x.t; });
+    storeTickets(prunedMap);
+
+    const allCovered = counters.length > 0 && validEntries.length === counters.length;
+    if(allCovered && !isAdminLoggedIn()){
+      renderMyTickets(validEntries);
       return;
     }
-    if(stored && !storedStillValid){
-      // The queue was reset since this device's ticket was issued — it no
-      // longer refers to anyone in the current queue, so let them register again.
-      clearStoredTicket();
-    }
-
     if(state.registrationPaused){
       renderPaused();
       return;
     }
-
     view = 'register';
-    if(view === 'register') renderRegister();
+    renderRegister(validEntries);
   }
+
+  function renderMyTickets(validEntries){
+    app.innerHTML = `
+      ${topline(true)}
+      <div class="center-col">
+        <div class="form-card" style="text-align:center;">
+          <h2>Your numbers</h2>
+          <p class="intro">Tap a number to see its live status.</p>
+          <div class="ticket-chip-row" style="justify-content:center;">
+            ${validEntries.map(x => `<button class="ticket-chip" data-counter="${x.counter.id}">${escapeHtml(x.counter.label)}: ${escapeHtml(x.t.ticketNumber)} →</button>`).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+    app.querySelectorAll('.ticket-chip').forEach(btn=>{
+      btn.onclick = () => openTicketForCounter(btn.getAttribute('data-counter'));
+    });
+  }
+
+  function openTicketForCounter(counterId){
+    const tickets = getStoredTickets();
+    const t = tickets[counterId];
+    if(!t) return;
+    myCounterId = counterId;
+    myTicketNumber = t.ticketNumber;
+    myCounterSeq = t.counterSeq;
+    renderTicket();
+    startPolling(pollTicketUpdate);
+  }
+
   function renderPaused(){
     app.innerHTML = `
       ${topline(true)}
@@ -711,13 +539,30 @@
       </div>
     `;
   }
-  function renderRegister(){
+
+  function optionsForCounter(counter){
+    const services = (state.services || []).filter(s => s.counterId === counter.id);
+    let html = services.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
+    if(counter.allowOther){
+      html += `<option value="${OTHER_PREFIX}${counter.id}">Other (please specify)</option>`;
+    }
+    return html;
+  }
+
+  function renderRegister(validEntries){
+    validEntries = validEntries || [];
+    const counters = state.counters || [];
     app.innerHTML = `
       ${topline(true)}
       <div class="center-col">
         <div class="form-card">
           <h2>Get your number</h2>
           <p class="intro">Fill this in and we'll help you in order — no need to stay in a physical line.</p>
+          ${validEntries.length ? `
+            <div class="ticket-chip-row" style="margin:0 0 20px;">
+              ${validEntries.map(x => `<button type="button" class="ticket-chip" data-counter="${x.counter.id}">Already have ${escapeHtml(x.counter.label)}: ${escapeHtml(x.t.ticketNumber)} →</button>`).join('')}
+            </div>
+          ` : ''}
           <form id="register-form">
             <div class="field-group">
               <label class="field-label" for="f-name">Name</label>
@@ -731,8 +576,7 @@
               <label class="field-label" for="f-service">What do you need help with?</label>
               <select class="text-input" id="f-service" required>
                 <option value="" disabled selected>Select a service</option>
-                ${(state.services || []).map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('')}
-                <option value="${OTHER_VALUE}">Other (please specify)</option>
+                ${counters.map(c => `<optgroup label="${escapeHtml(c.label)}">${optionsForCounter(c)}</optgroup>`).join('')}
               </select>
             </div>
             <div class="field-group" id="other-service-group" style="display:none;">
@@ -740,17 +584,21 @@
               <input class="text-input" id="f-service-other" type="text" maxlength="120" placeholder="Tell us what you need help with">
             </div>
             <div class="field-error" id="form-error">Please fill in all fields.</div>
-            <button class="primary-btn" type="submit" style="width:100%;">Get my number</button>
+            <button class="primary-btn hero-btn" type="submit" style="width:100%;background:var(--ink);color:var(--board-digit);">Get my number</button>
           </form>
           <p class="privacy-note">${escapeHtml(state.privacyNotice || '')}</p>
         </div>
       </div>
     `;
+    app.querySelectorAll('.ticket-chip').forEach(btn=>{
+      btn.onclick = () => openTicketForCounter(btn.getAttribute('data-counter'));
+    });
+
     const serviceSelect = document.getElementById('f-service');
     const otherGroup = document.getElementById('other-service-group');
     const otherInput = document.getElementById('f-service-other');
     serviceSelect.onchange = ()=>{
-      const isOther = serviceSelect.value === OTHER_VALUE;
+      const isOther = serviceSelect.value.startsWith(OTHER_PREFIX);
       otherGroup.style.display = isOther ? 'block' : 'none';
       otherInput.required = isOther;
       if(!isOther) otherInput.value = '';
@@ -760,11 +608,10 @@
       e.preventDefault();
       const name = document.getElementById('f-name').value.trim();
       const phone = document.getElementById('f-phone').value.trim();
-      const serviceChoice = serviceSelect.value;
-      const service = serviceChoice === OTHER_VALUE ? otherInput.value.trim() : serviceChoice;
+      const selectedValue = serviceSelect.value;
       const errEl = document.getElementById('form-error');
 
-      if(!name || !phone || !service){
+      if(!name || !phone || !selectedValue){
         errEl.textContent = 'Please fill in all fields.';
         errEl.classList.add('show');
         return;
@@ -779,10 +626,41 @@
         errEl.classList.add('show');
         return;
       }
+
+      let counterId, service;
+      if(selectedValue.startsWith(OTHER_PREFIX)){
+        counterId = selectedValue.slice(OTHER_PREFIX.length);
+        service = otherInput.value.trim();
+        if(!service){
+          errEl.textContent = 'Please tell us what you need help with.';
+          errEl.classList.add('show');
+          return;
+        }
+      } else {
+        const svc = (state.services || []).find(s => s.name === selectedValue);
+        if(!svc){
+          errEl.textContent = 'Please choose a valid service.';
+          errEl.classList.add('show');
+          return;
+        }
+        counterId = svc.counterId;
+        service = svc.name;
+      }
       errEl.classList.remove('show');
+
+      // If this device already holds a valid ticket for this specific
+      // counter, don't issue a second one — show the existing ticket.
+      const existing = getStoredTickets()[counterId];
+      const counter = counterById(counterId);
+      if(existing && counter && existing.counterSeq <= counter.lastIssued && !isAdminLoggedIn()){
+        showToast('You already have a number for ' + (counter.label || 'this counter') + '.');
+        openTicketForCounter(counterId);
+        return;
+      }
+
       try{
         const res = await apiCall('/api/register', {
-          method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, phone, service })
+          method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, phone, service, counterId })
         });
         const result = await res.json();
         if(!res.ok){
@@ -790,9 +668,11 @@
           errEl.classList.add('show');
           return;
         }
-        myTicket = result.number;
+        myCounterId = result.counterId;
+        myTicketNumber = result.ticketNumber;
+        myCounterSeq = result.counterSeq;
         state = result.state;
-        storeTicket({ number: myTicket });
+        saveDeviceTicket(myCounterId, myTicketNumber, myCounterSeq);
         enableSound();
         renderTicket();
         startPolling(pollTicketUpdate);
@@ -802,7 +682,9 @@
     };
   }
 
+  /* ---------------- TICKET PAGE ---------------- */
   function renderTicket(){
+    const counter = counterById(myCounterId) || { label:'', prefix:'', nowServing:0 };
     app.innerHTML = `
       ${topline(true)}
       <div class="center-col">
@@ -810,20 +692,19 @@
           <div class="ticket">
             <div class="perf"></div>
             <div class="ticket-eyebrow">Your number</div>
-            <div class="ticket-number">${String(myTicket).padStart(3,'0')}</div>
+            <div class="counter-tag">${escapeHtml(counter.label || '')}</div>
+            <div class="ticket-number">${escapeHtml(myTicketNumber || '')}</div>
             <p class="ticket-hint">${escapeHtml(state.ticketMessage || "We'll help you in order.")}</p>
             <div class="ticket-divider"></div>
-            <div class="ticket-meta">
-              <span>${escapeHtml(state.title)}</span>
-            </div>
+            <div class="ticket-meta">${escapeHtml(state.title)}</div>
           </div>
 
           <div class="mini-board">
             <div class="mini-ring" id="t-ring1"></div>
             <div class="mini-ring r2" id="t-ring2"></div>
             <div class="mini-ring r3" id="t-ring3"></div>
-            <div class="mini-label">Now serving</div>
-            <div class="mini-number" id="mini-serving-num">${String(state.nowServing).padStart(3,'0')}</div>
+            <div class="mini-label">${escapeHtml(counter.label || '')} &middot; Now serving</div>
+            <div class="mini-number" id="mini-serving-num">${formatCounterNumber(counter, counter.nowServing)}</div>
           </div>
 
           <div style="text-align:center;">
@@ -832,28 +713,33 @@
         </div>
       </div>
     `;
-    ticketServingSeen = state.nowServing;
-    ticketRecallSeen = state.lastRecallAt || null;
+    ticketServingSeen = counter.nowServing;
+    ticketRecallSeen = counter.lastRecallAt || null;
     updateTicketAheadCount();
+  }
+  function formatCounterNumber(counter, seq){
+    if(!counter || !counter.prefix) return String(seq).padStart(3,'0');
+    return `${counter.prefix}-${String(seq).padStart(3,'0')}`;
   }
   function updateTicketAheadCount(){
     const pillEl = document.getElementById('ahead-pill');
     const numEl = document.getElementById('mini-serving-num');
-    if(!pillEl || !numEl) return;
-    numEl.textContent = String(state.nowServing).padStart(3,'0');
+    const counter = counterById(myCounterId);
+    if(!pillEl || !numEl || !counter) return;
+    numEl.textContent = formatCounterNumber(counter, counter.nowServing);
 
     let text, cls;
-    if(state.nowServing > myTicket){
+    if(counter.nowServing > myCounterSeq){
       text = 'Your number has already been called — please check with staff';
       cls = 'passed';
-    } else if(state.nowServing === myTicket){
+    } else if(counter.nowServing === myCounterSeq){
       text = "It's your turn — please come forward";
       cls = 'turn';
-    } else if(state.nowServing === myTicket - 1){
+    } else if(counter.nowServing === myCounterSeq - 1){
       text = "You're next";
       cls = 'next';
     } else {
-      const ahead = myTicket - state.nowServing - 1;
+      const ahead = myCounterSeq - counter.nowServing - 1;
       text = ahead + ' number' + (ahead === 1 ? '' : 's') + ' ahead of you';
       cls = 'ahead';
     }
@@ -864,31 +750,24 @@
     ['t-ring1','t-ring2','t-ring3'].forEach(id=>{
       const el = document.getElementById(id);
       if(!el) return;
-      el.classList.remove('go');
-      void el.offsetWidth;
-      el.classList.add('go');
+      el.classList.remove('go'); void el.offsetWidth; el.classList.add('go');
     });
     const numEl = document.getElementById('mini-serving-num');
-    if(numEl){
-      numEl.classList.remove('pulse');
-      void numEl.offsetWidth;
-      numEl.classList.add('pulse');
-    }
+    if(numEl){ numEl.classList.remove('pulse'); void numEl.offsetWidth; numEl.classList.add('pulse'); }
   }
   async function pollTicketUpdate(){
     state = await api.getState();
-    const changed = state.nowServing !== ticketServingSeen;
-    const recalled = state.lastRecallAt && state.lastRecallAt !== ticketRecallSeen;
-    ticketServingSeen = state.nowServing;
-    if(recalled){ ticketRecallSeen = state.lastRecallAt; }
+    const counter = counterById(myCounterId);
+    if(!counter) return;
+    const changed = counter.nowServing !== ticketServingSeen;
+    const recalled = counter.lastRecallAt && counter.lastRecallAt !== ticketRecallSeen;
+    ticketServingSeen = counter.nowServing;
+    if(recalled){ ticketRecallSeen = counter.lastRecallAt; }
     updateTicketAheadCount();
-    if(changed || recalled){
-      fireTicketRipple();
-      playChime();
-    }
+    if(changed || recalled){ fireTicketRipple(); playChime(); }
   }
 
-  /* ---------------- SOUND (display board) ---------------- */
+  /* ---------------- SOUND ---------------- */
   let audioCtx = null;
   let soundEnabled = false;
   function enableSound(){
@@ -918,70 +797,65 @@
       });
     }catch(e){ /* ignore playback errors */ }
   }
-  function fireRipple(){
+  function fireRipple(counterId){
     ['ring1','ring2','ring3'].forEach(id=>{
-      const el = document.getElementById(id);
+      const el = document.getElementById(id + '_' + counterId);
       if(!el) return;
-      el.classList.remove('go');
-      void el.offsetWidth;
-      el.classList.add('go');
+      el.classList.remove('go'); void el.offsetWidth; el.classList.add('go');
     });
   }
 
-  /* ---------------- DISPLAY ---------------- */
+  /* ---------------- DISPLAY BOARD (all counters) ---------------- */
   function renderDisplay(){
+    const counters = state.counters || [];
+    boardTrack = {};
+    counters.forEach(c => { boardTrack[c.id] = { serving: c.nowServing, recall: c.lastRecallAt || null }; });
+
     app.innerHTML = `
       <div class="board-view">
         ${topline(true)}
         ${!soundEnabled ? `<button id="enable-sound-btn" class="sound-banner">🔔 Tap to enable the number-change sound</button>` : ''}
-        <div class="board-center">
-          <div class="ripple-ring" id="ring1"></div>
-          <div class="ripple-ring r2" id="ring2"></div>
-          <div class="ripple-ring r3" id="ring3"></div>
-          <div class="serving-label">Now serving</div>
-          <div class="serving-number" id="serving-num">${String(state.nowServing).padStart(3,'0')}</div>
-          <div class="board-sub" id="board-sub">${state.lastIssued > state.nowServing ? (state.lastIssued - state.nowServing) + ' waiting' : 'No one waiting'}</div>
+        <div class="board-columns">
+          ${counters.map(c => `
+            <div class="board-panel">
+              <div class="ripple-ring" id="ring1_${c.id}"></div>
+              <div class="ripple-ring r2" id="ring2_${c.id}"></div>
+              <div class="ripple-ring r3" id="ring3_${c.id}"></div>
+              <div class="board-clabel">${escapeHtml(c.label)}</div>
+              <div class="serving-label">Now Serving</div>
+              <div class="serving-number" id="serving-num_${c.id}">${formatCounterNumber(c, c.nowServing)}</div>
+              <div class="board-sub" id="board-sub_${c.id}">${c.lastIssued > c.nowServing ? (c.lastIssued - c.nowServing) + ' waiting' : 'No one waiting'}</div>
+            </div>
+          `).join('')}
         </div>
         <div class="board-footer">${escapeHtml(state.title)}</div>
       </div>
     `;
     const soundBtn = document.getElementById('enable-sound-btn');
     if(soundBtn){
-      soundBtn.onclick = ()=>{
-        enableSound();
-        playChime();
-        soundBtn.remove();
-      };
+      soundBtn.onclick = ()=>{ enableSound(); playChime(); soundBtn.remove(); };
     }
-    lastServingSeen = state.nowServing;
-    lastRecallSeen = state.lastRecallAt || null;
     startPolling(async ()=>{
       state = await api.getState();
-      const numEl = document.getElementById('serving-num');
-      const subEl = document.getElementById('board-sub');
-      if(!numEl) return;
-
-      const servingChanged = state.nowServing !== lastServingSeen;
-      const recalled = state.lastRecallAt && state.lastRecallAt !== lastRecallSeen;
-
-      if(servingChanged){
-        lastServingSeen = state.nowServing;
-        numEl.textContent = String(state.nowServing).padStart(3,'0');
-        numEl.classList.remove('pulse');
-        void numEl.offsetWidth;
-        numEl.classList.add('pulse');
-      }
-      if(recalled){ lastRecallSeen = state.lastRecallAt; }
-      if(servingChanged || recalled){
-        fireRipple();
-        playChime();
-      }
-      if(subEl){ subEl.textContent = state.lastIssued > state.nowServing ? (state.lastIssued - state.nowServing) + ' waiting' : 'No one waiting'; }
+      (state.counters || []).forEach(c => {
+        const track = boardTrack[c.id] || { serving: c.nowServing, recall: null };
+        const changed = c.nowServing !== track.serving;
+        const recalled = c.lastRecallAt && c.lastRecallAt !== track.recall;
+        const numEl = document.getElementById('serving-num_' + c.id);
+        const subEl = document.getElementById('board-sub_' + c.id);
+        if(numEl && changed){
+          numEl.textContent = formatCounterNumber(c, c.nowServing);
+          numEl.classList.remove('pulse'); void numEl.offsetWidth; numEl.classList.add('pulse');
+        }
+        if(changed || recalled){ fireRipple(c.id); playChime(); }
+        if(subEl){ subEl.textContent = c.lastIssued > c.nowServing ? (c.lastIssued - c.nowServing) + ' waiting' : 'No one waiting'; }
+        boardTrack[c.id] = { serving: c.nowServing, recall: c.lastRecallAt || track.recall };
+      });
     });
   }
 
   /* ---------------- PASSWORD GATES ---------------- */
-  function renderPasswordGate(kind, onSuccessView, heading, blurb){
+  function renderPasswordGate(kind, onSuccess, heading, blurb){
     app.innerHTML = `
       ${topline(true)}
       <div class="center-col">
@@ -994,7 +868,7 @@
               <input class="text-input" id="pw-input" type="password" required autofocus>
             </div>
             <div class="field-error" id="pw-error">Wrong password.</div>
-            <button class="primary-btn" type="submit" style="width:100%;">Enter</button>
+            <button class="primary-btn hero-btn" type="submit" style="width:100%;background:var(--ink);color:var(--board-digit);">Enter</button>
           </form>
         </div>
       </div>
@@ -1008,7 +882,7 @@
         const result = await loginFn(val);
         if(result.ok){
           sessionStorage.setItem(kind + 'Password', val);
-          goto(onSuccessView);
+          onSuccess();
         }else{
           errEl.classList.add('show');
         }
@@ -1017,87 +891,134 @@
       }
     };
   }
-  function renderCallLogin(){ renderPasswordGate('call', 'call-desk', 'Call desk', 'Enter the call desk password to call and recall numbers.'); }
-  function renderAdminLogin(){ renderPasswordGate('admin', 'admin-panel', 'Admin', 'Enter the admin password to manage the queue and view visitor details.'); }
+  function renderCallLogin(){ renderPasswordGate('call', enterCallDesk, 'Call desk', 'Enter the call desk password to call and recall numbers.'); }
+  function renderAdminLogin(){ renderPasswordGate('admin', () => goto('admin-panel'), 'Admin', 'Enter the admin password to manage the queue and view visitor details.'); }
 
   /* ---------------- CALL DESK ---------------- */
-  function renderCallDesk(){
-    const waiting = Math.max(0, state.lastIssued - state.nowServing);
+  function enterCallDesk(){
+    stopPolling();
+    view = 'call-desk';
+    const chosen = sessionStorage.getItem('callCounterId');
+    const counter = chosen ? counterById(chosen) : null;
+    if(counter){ renderCallDeskDashboard(counter.id); }
+    else { renderCounterChoice(); }
+  }
+  function renderCounterChoice(){
+    const counters = state.counters || [];
+    app.innerHTML = `
+      ${topline(true)}
+      <div class="center-col">
+        <div class="form-card" style="text-align:center;">
+          <h2>Which counter are you running?</h2>
+          <p class="intro">You're logged in — choose your counter for this session.</p>
+          <div class="counter-choice">
+            ${counters.map(c => `<button data-counter="${c.id}">${escapeHtml(c.label)}</button>`).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+    app.querySelectorAll('.counter-choice button').forEach(btn=>{
+      btn.onclick = ()=>{
+        sessionStorage.setItem('callCounterId', btn.getAttribute('data-counter'));
+        renderCallDeskDashboard(btn.getAttribute('data-counter'));
+      };
+    });
+  }
+  function renderCallDeskDashboard(counterId){
+    const counter = counterById(counterId);
+    if(!counter){ renderCounterChoice(); return; }
+    const waiting = Math.max(0, counter.lastIssued - counter.nowServing);
     app.innerHTML = `
       ${topline(true)}
       <div class="center-col">
         <div class="panel" style="max-width:460px;width:100%;">
-          <h3>Call desk</h3>
+          <h3>Call desk &middot; ${escapeHtml(counter.label)}</h3>
           <div class="stat-row">
-            <div class="stat">
-              <div class="num" id="cd-serving">${String(state.nowServing).padStart(3,'0')}</div>
-              <div class="lbl">Now serving</div>
-            </div>
-            <div class="stat">
-              <div class="num" id="cd-waiting">${waiting}</div>
-              <div class="lbl">Waiting</div>
-            </div>
+            <div class="stat"><div class="num" id="cd-serving">${formatCounterNumber(counter, counter.nowServing)}</div><div class="lbl">Now serving</div></div>
+            <div class="stat"><div class="num" id="cd-waiting">${waiting}</div><div class="lbl">Waiting</div></div>
           </div>
-          <button class="primary-btn call-next-btn" id="call-next-btn" ${waiting<=0 ? 'disabled' : ''}>Call next number</button>
+          <button class="primary-btn call-next-btn hero-btn" id="call-next-btn" style="background:var(--ink);color:var(--board-digit);" ${waiting<=0 ? 'disabled' : ''}>Call next number</button>
           <div class="btn-row">
             <button class="ghost-btn" id="recall-btn">Recall current number</button>
           </div>
+          <div style="text-align:center;">
+            <button class="switch-counter-link" id="switch-counter-btn">Switch counter</button>
+          </div>
         </div>
         <div class="panel wide-panel" style="margin-top:20px;">
-          <h3>Visitors</h3>
+          <h3>Visitors &middot; ${escapeHtml(counter.label)}</h3>
           <div id="call-visitor-table-wrap"></div>
         </div>
       </div>
     `;
     document.getElementById('call-next-btn').onclick = async ()=>{
       try{
-        state = await api.callNext();
-        showToast('Now serving ' + String(state.nowServing).padStart(3,'0'));
-        renderCallDesk();
-      }catch(e){ /* handled by auth/offline handlers */ }
+        state = await api.callNext(counterId);
+        const c = counterById(counterId);
+        showToast('Now serving ' + formatCounterNumber(c, c.nowServing));
+        renderCallDeskDashboard(counterId);
+      }catch(e){ /* handled */ }
     };
     document.getElementById('recall-btn').onclick = async ()=>{
       try{
-        state = await api.callRecall();
-        showToast('Recalled number ' + String(state.nowServing).padStart(3,'0'));
+        state = await api.callRecall(counterId);
+        const c = counterById(counterId);
+        showToast('Recalled number ' + formatCounterNumber(c, c.nowServing));
       }catch(e){ /* handled */ }
     };
-    async function refreshCallDesk(){
+    document.getElementById('switch-counter-btn').onclick = ()=>{
+      sessionStorage.removeItem('callCounterId');
+      renderCounterChoice();
+    };
+
+    async function refreshDashboard(){
       try{
         state = await api.callState();
-        const waitingNow = Math.max(0, state.lastIssued - state.nowServing);
+        const c = counterById(counterId);
+        if(!c) return;
+        const waitingNow = Math.max(0, c.lastIssued - c.nowServing);
         const servingEl = document.getElementById('cd-serving');
         const waitingEl = document.getElementById('cd-waiting');
         const btn = document.getElementById('call-next-btn');
-        if(servingEl) servingEl.textContent = String(state.nowServing).padStart(3,'0');
+        if(servingEl) servingEl.textContent = formatCounterNumber(c, c.nowServing);
         if(waitingEl) waitingEl.textContent = waitingNow;
         if(btn) btn.disabled = waitingNow <= 0;
-      }catch(e){ /* handled by auth/offline handlers */ }
+      }catch(e){ /* handled */ }
       try{
-        const data = await api.callVisitors();
-        renderVisitorTable('call-visitor-table-wrap', data.visitors, api.callToggleHelped);
+        const data = await api.callVisitors(counterId);
+        renderVisitorTable('call-visitor-table-wrap', data.visitors, toggleHelpedForThisCounter);
       }catch(e){ /* handled */ }
     }
-    refreshCallDesk();
-    startPolling(refreshCallDesk);
+    async function toggleHelpedForThisCounter(ticketNumber, helped){
+      await api.callToggleHelped(ticketNumber, helped);
+      return api.callVisitors(counterId); // re-fetch, correctly scoped to this counter
+    }
+    refreshDashboard();
+    startPolling(refreshDashboard);
   }
 
   /* ---------------- ADMIN ---------------- */
   function renderAdminPanel(){
+    const counters = state.counters || [];
     app.innerHTML = `
       ${topline(true)}
       <div class="center-col">
         <div class="panel-grid" style="margin-bottom:20px;">
           <div class="panel">
             <h3>Queue overview</h3>
-            <div class="stat-row" id="admin-stats">
-              <div class="stat"><div class="num">${String(state.nowServing).padStart(3,'0')}</div><div class="lbl">Now serving</div></div>
-              <div class="stat"><div class="num">${String(state.lastIssued).padStart(3,'0')}</div><div class="lbl">Last issued</div></div>
-            </div>
+            ${counters.map(c => `
+              <div class="counter-stat-block">
+                <h4>${escapeHtml(c.label)}</h4>
+                <div class="stat-row">
+                  <div class="stat"><div class="num">${formatCounterNumber(c, c.nowServing)}</div><div class="lbl">Now serving</div></div>
+                  <div class="stat"><div class="num">${formatCounterNumber(c, c.lastIssued)}</div><div class="lbl">Last issued</div></div>
+                </div>
+              </div>
+            `).join('')}
             <div class="field-group" style="margin-top:22px;">
               <label class="field-label">Visitor registration</label>
               <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-                <span class="status-pill ${state.registrationPaused ? 'paused' : 'active'}" id="pause-status-badge">${state.registrationPaused ? 'Paused' : 'Active'}</span>
+                <span class="status-pill ${state.registrationPaused ? 'paused' : 'active'}">${state.registrationPaused ? 'Paused' : 'Active'}</span>
                 <button class="ghost-btn" id="pause-toggle-btn" style="flex:1;">${state.registrationPaused ? 'Resume registration' : 'Pause registration'}</button>
               </div>
               <label class="field-label" for="pause-message-input">Message shown to visitors while paused</label>
@@ -1107,55 +1028,56 @@
               </div>
             </div>
             <div class="danger-zone">
-              <p>Starting a new event? This clears all numbers and visitor details.</p>
+              <p>Starting a new event? This clears all numbers (for every counter) and visitor details.</p>
               <button class="rust-btn" id="reset-btn">Reset queue</button>
             </div>
           </div>
           <div class="panel">
             <h3>Landing page text</h3>
-            <p style="font-size:13px;color:#8a8d9e;margin:6px 0 14px;">Event title shows in the header on every screen. The welcome message shows under "Welcome" on the home screen. The ticket message shows under a visitor's number after they register. The privacy notice shows on the registration form itself.</p>
+            <p style="font-size:13px;color:#8a8d9e;margin:6px 0 14px;">Event title shows in the header. Welcome message shows on the home screen. Ticket message shows under a visitor's number. Privacy notice shows on the register form.</p>
             <div class="field-group">
               <label class="field-label" for="title-input">Event title</label>
               <input class="text-input" id="title-input" value="${escapeHtml(state.title)}" maxlength="100">
-              <div class="save-row">
-                <button class="ghost-btn" id="save-title-btn" style="flex:1;">Save title</button>
-              </div>
+              <div class="save-row"><button class="ghost-btn" id="save-title-btn" style="flex:1;">Save title</button></div>
             </div>
             <div class="field-group" style="margin-top:20px;">
               <label class="field-label" for="welcome-input">Welcome message</label>
               <input class="text-input" id="welcome-input" value="${escapeHtml(state.welcomeMessage || '')}" maxlength="200">
-              <div class="save-row">
-                <button class="ghost-btn" id="save-welcome-btn" style="flex:1;">Save message</button>
-              </div>
+              <div class="save-row"><button class="ghost-btn" id="save-welcome-btn" style="flex:1;">Save message</button></div>
             </div>
             <div class="field-group" style="margin-top:20px;">
               <label class="field-label" for="ticket-message-input">Ticket message</label>
               <input class="text-input" id="ticket-message-input" value="${escapeHtml(state.ticketMessage || '')}" maxlength="150">
-              <div class="save-row">
-                <button class="ghost-btn" id="save-ticket-message-btn" style="flex:1;">Save message</button>
-              </div>
+              <div class="save-row"><button class="ghost-btn" id="save-ticket-message-btn" style="flex:1;">Save message</button></div>
             </div>
             <div class="field-group" style="margin-top:20px;">
-              <label class="field-label" for="privacy-notice-input">Privacy notice (shown on the register form)</label>
+              <label class="field-label" for="privacy-notice-input">Privacy notice</label>
               <input class="text-input" id="privacy-notice-input" value="${escapeHtml(state.privacyNotice || '')}" maxlength="250">
-              <div class="save-row">
-                <button class="ghost-btn" id="save-privacy-notice-btn" style="flex:1;">Save notice</button>
-              </div>
+              <div class="save-row"><button class="ghost-btn" id="save-privacy-notice-btn" style="flex:1;">Save notice</button></div>
             </div>
           </div>
         </div>
+
+        <div class="panel wide-panel" style="margin-bottom:20px;">
+          <h3>Counters</h3>
+          <p style="font-size:13px;color:#8a8d9e;margin:6px 0 14px;">Each counter runs its own independent numbering. "Allow other" lets visitors type a custom service under that counter.</p>
+          <div id="counters-list-wrap"></div>
+          <div class="counter-row" style="margin-top:16px;">
+            <input class="text-input" id="new-counter-label" type="text" maxlength="40" placeholder="Counter name">
+            <input class="text-input prefix-input" id="new-counter-prefix" type="text" maxlength="6" placeholder="Prefix">
+            <label style="font-size:13px;display:flex;align-items:center;gap:6px;">
+              <input type="checkbox" id="new-counter-allow-other"> Allow "Other"
+            </label>
+            <button class="ghost-btn" id="add-counter-btn">Add counter</button>
+          </div>
+        </div>
+
         <div class="panel wide-panel" style="margin-bottom:20px;">
           <h3>Services</h3>
-          <p style="font-size:13px;color:#8a8d9e;margin:6px 0 14px;">Shown as options when visitors register. "Other" is always available in addition to this list.</p>
+          <p style="font-size:13px;color:#8a8d9e;margin:6px 0 14px;">Shown as options when visitors register, grouped by counter.</p>
           <div id="services-list-wrap"></div>
-          <div class="field-group" style="margin-top:16px;max-width:460px;">
-            <label class="field-label" for="new-service-input">Add a service</label>
-            <div style="display:flex;gap:10px;">
-              <input class="text-input" id="new-service-input" type="text" maxlength="120" placeholder="e.g. Notarial certification" style="flex:1;">
-              <button class="ghost-btn" id="add-service-btn">Add</button>
-            </div>
-          </div>
         </div>
+
         <div class="panel wide-panel">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
             <h3 style="margin:0;">Visitors</h3>
@@ -1165,109 +1087,164 @@
               <input type="file" id="upload-csv-input" accept=".csv,text/csv" style="display:none;">
             </div>
           </div>
-          <p style="font-size:12px;color:#8a8d9e;margin:8px 0 0;">To edit visitor details or reorder the queue, download the CSV, edit it (renumbering the "Number" column changes call order), then upload it here — this replaces the visitor list.</p>
+          <p style="font-size:12px;color:#8a8d9e;margin:8px 0 0;">To edit visitor details or reorder a counter's queue, download the CSV, edit it (renumbering the "TicketNumber" column changes call order within its counter), then upload it here — this replaces the visitor list.</p>
           <p id="import-error-note" style="font-size:13px;color:var(--rust);margin:10px 0 0;display:none;"></p>
           <div id="visitor-table-wrap"></div>
         </div>
       </div>
     `;
 
-    document.getElementById('reset-btn').onclick = async ()=>{
-      if(!confirm('Reset the queue and clear all visitor details? This cannot be undone.')) return;
-      try{
-        state = await api.adminReset();
-        showToast('Queue reset');
-        loadVisitors();
-        renderAdminPanel();
-      }catch(e){ /* handled */ }
-    };
     document.getElementById('save-title-btn').onclick = async ()=>{
       const val = document.getElementById('title-input').value.trim();
       if(!val) return;
-      try{
-        state = await api.adminSetTitle(val);
-        showToast('Event title saved');
-      }catch(e){ /* handled */ }
+      try{ state = await api.adminSetTitle(val); showToast('Event title saved'); }catch(e){}
     };
     document.getElementById('save-welcome-btn').onclick = async ()=>{
       const val = document.getElementById('welcome-input').value.trim();
       if(!val) return;
-      try{
-        state = await api.adminSetWelcome(val);
-        showToast('Welcome message saved');
-      }catch(e){ /* handled */ }
+      try{ state = await api.adminSetWelcome(val); showToast('Welcome message saved'); }catch(e){}
     };
     document.getElementById('save-ticket-message-btn').onclick = async ()=>{
       const val = document.getElementById('ticket-message-input').value.trim();
       if(!val) return;
-      try{
-        state = await api.adminSetTicketMessage(val);
-        showToast('Ticket message saved');
-      }catch(e){ /* handled */ }
+      try{ state = await api.adminSetTicketMessage(val); showToast('Ticket message saved'); }catch(e){}
     };
     document.getElementById('save-privacy-notice-btn').onclick = async ()=>{
       const val = document.getElementById('privacy-notice-input').value.trim();
       if(!val) return;
-      try{
-        state = await api.adminSetPrivacyNotice(val);
-        showToast('Privacy notice saved');
-      }catch(e){ /* handled */ }
+      try{ state = await api.adminSetPrivacyNotice(val); showToast('Privacy notice saved'); }catch(e){}
     };
     document.getElementById('pause-toggle-btn').onclick = async ()=>{
       try{
         state = await api.adminSetPause(!state.registrationPaused);
         showToast(state.registrationPaused ? 'Registration paused' : 'Registration resumed');
         renderAdminPanel();
-      }catch(e){ /* handled */ }
+      }catch(e){}
     };
     document.getElementById('save-pause-message-btn').onclick = async ()=>{
       const val = document.getElementById('pause-message-input').value.trim();
       if(!val) return;
+      try{ state = await api.adminSetPauseMessage(val); showToast('Paused message saved'); }catch(e){}
+    };
+    document.getElementById('reset-btn').onclick = async ()=>{
+      if(!confirm('Reset every counter\'s queue and clear all visitor details? This cannot be undone.')) return;
       try{
-        state = await api.adminSetPauseMessage(val);
-        showToast('Paused message saved');
-      }catch(e){ /* handled */ }
+        state = await api.adminReset();
+        showToast('Queue reset');
+        renderAdminPanel();
+      }catch(e){}
+    };
+
+    function renderCountersList(){
+      const wrap = document.getElementById('counters-list-wrap');
+      if(!wrap) return;
+      const list = state.counters || [];
+      wrap.innerHTML = list.map(c => `
+        <div class="counter-row">
+          <input class="text-input counter-label-input" data-id="${c.id}" type="text" value="${escapeHtml(c.label)}" maxlength="40">
+          <input class="text-input prefix-input counter-prefix-input" data-id="${c.id}" type="text" value="${escapeHtml(c.prefix)}" maxlength="6">
+          <label style="font-size:13px;display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" class="counter-allow-other-input" data-id="${c.id}" ${c.allowOther ? 'checked' : ''}> Allow "Other"
+          </label>
+          <button class="ghost-btn counter-save-btn" data-id="${c.id}">Save</button>
+          <button class="rust-btn counter-remove-btn" data-id="${c.id}">Remove</button>
+        </div>
+      `).join('');
+
+      wrap.querySelectorAll('.counter-save-btn').forEach(btn=>{
+        btn.onclick = async ()=>{
+          const id = btn.getAttribute('data-id');
+          const label = wrap.querySelector(`.counter-label-input[data-id="${id}"]`).value.trim();
+          const prefix = wrap.querySelector(`.counter-prefix-input[data-id="${id}"]`).value.trim();
+          const allowOther = wrap.querySelector(`.counter-allow-other-input[data-id="${id}"]`).checked;
+          if(!label || !prefix) return;
+          try{
+            state = await api.adminUpdateCounter(id, { label, prefix, allowOther });
+            showToast('Counter saved');
+            renderAdminPanel();
+          }catch(e){}
+        };
+      });
+      wrap.querySelectorAll('.counter-remove-btn').forEach(btn=>{
+        btn.onclick = async ()=>{
+          if(!confirm('Remove this counter? It must have no services or visitors assigned.')) return;
+          try{
+            const res = await api.adminRemoveCounter(btn.getAttribute('data-id'));
+            const data = await res.json();
+            if(!res.ok){
+              showToast(data.error || "Couldn't remove that counter.");
+              return;
+            }
+            state = data;
+            showToast('Counter removed');
+            renderAdminPanel();
+          }catch(e){ showToast("Couldn't reach the server."); }
+        };
+      });
+    }
+    renderCountersList();
+    document.getElementById('add-counter-btn').onclick = async ()=>{
+      const label = document.getElementById('new-counter-label').value.trim();
+      const prefix = document.getElementById('new-counter-prefix').value.trim();
+      const allowOther = document.getElementById('new-counter-allow-other').checked;
+      if(!label || !prefix) return;
+      try{
+        state = await api.adminAddCounter(label, prefix, allowOther);
+        showToast('Counter added');
+        renderAdminPanel();
+      }catch(e){}
     };
 
     function renderServicesList(){
       const wrap = document.getElementById('services-list-wrap');
       if(!wrap) return;
+      const counters = state.counters || [];
       const services = state.services || [];
-      if(services.length === 0){
-        wrap.innerHTML = `<p class="empty-note">No services added yet — visitors will only see "Other".</p>`;
-        return;
-      }
-      wrap.innerHTML = `
-        <div class="service-chip-list">
-          ${services.map(s => `
-            <div class="service-chip">
-              <span>${escapeHtml(s)}</span>
-              <button class="chip-remove" type="button" data-service="${escapeHtml(s)}" aria-label="Remove ${escapeHtml(s)}">×</button>
+      wrap.innerHTML = counters.map(c => {
+        const list = services.filter(s => s.counterId === c.id);
+        return `
+          <div class="service-group">
+            <h4>${escapeHtml(c.label)}</h4>
+            <div class="service-chip-list">
+              ${list.length ? list.map(s => `
+                <div class="service-chip">
+                  <span>${escapeHtml(s.name)}</span>
+                  <button class="chip-remove" type="button" data-name="${escapeHtml(s.name)}" aria-label="Remove ${escapeHtml(s.name)}">×</button>
+                </div>
+              `).join('') : '<p class="empty-note" style="margin:0;">No services yet.</p>'}
             </div>
-          `).join('')}
-        </div>
-      `;
+            <div class="counter-row" style="margin-top:12px;">
+              <input class="text-input new-service-input" data-counter="${c.id}" type="text" maxlength="160" placeholder="Add a service" style="max-width:280px;">
+              <button class="ghost-btn add-service-btn" data-counter="${c.id}">Add</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
       wrap.querySelectorAll('.chip-remove').forEach(btn=>{
         btn.onclick = async ()=>{
           try{
-            state = await api.adminRemoveService(btn.getAttribute('data-service'));
+            state = await api.adminRemoveService(btn.getAttribute('data-name'));
             renderServicesList();
             showToast('Service removed');
-          }catch(e){ /* handled */ }
+          }catch(e){}
+        };
+      });
+      wrap.querySelectorAll('.add-service-btn').forEach(btn=>{
+        btn.onclick = async ()=>{
+          const counterId = btn.getAttribute('data-counter');
+          const input = wrap.querySelector(`.new-service-input[data-counter="${counterId}"]`);
+          const val = input.value.trim();
+          if(!val) return;
+          try{
+            state = await api.adminAddService(val, counterId);
+            input.value = '';
+            renderServicesList();
+            showToast('Service added');
+          }catch(e){}
         };
       });
     }
-    document.getElementById('add-service-btn').onclick = async ()=>{
-      const input = document.getElementById('new-service-input');
-      const val = input.value.trim();
-      if(!val) return;
-      try{
-        state = await api.adminAddService(val);
-        input.value = '';
-        renderServicesList();
-        showToast('Service added');
-      }catch(e){ /* handled */ }
-    };
     renderServicesList();
 
     document.getElementById('download-csv-btn').onclick = async ()=>{
@@ -1278,11 +1255,8 @@
         const blob = new Blob([text], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
-        a.download = 'visitors.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        a.href = url; a.download = 'visitors.csv';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
         URL.revokeObjectURL(url);
       }catch(e){ showToast("Couldn't download the CSV — try again."); }
     };
@@ -1293,11 +1267,9 @@
     importInput.onchange = async (e)=>{
       const file = e.target.files[0];
       if(!file) return;
-      importErrorNote.classList.remove('show');
       importErrorNote.style.display = 'none';
-      if(!confirm('This replaces the entire visitor list on the server with what\'s in this file. Continue?')){
-        importInput.value = '';
-        return;
+      if(!confirm("This replaces the entire visitor list on the server with what's in this file. Continue?")){
+        importInput.value = ''; return;
       }
       try{
         const text = await file.text();
@@ -1324,13 +1296,12 @@
         renderVisitorTable('visitor-table-wrap', data.visitors, api.adminToggleHelped);
       }catch(e){ /* handled */ }
     }
-
     loadVisitors();
     startPolling(loadVisitors);
   }
 
-  // Shared read-only visitor table renderer, used by both the admin page
-  // and the call desk's read-only visitor list.
+  // Shared read-only(ish) visitor table renderer, used by both the admin
+  // page and the call desk's visitor list.
   function renderVisitorTable(containerId, visitors, toggleHelpedFn){
     const wrap = document.getElementById(containerId);
     if(!wrap) return;
@@ -1338,9 +1309,11 @@
       wrap.innerHTML = `<p class="empty-note">No one has registered yet.</p>`;
       return;
     }
+    const showCounterCol = containerId === 'visitor-table-wrap';
     const rows = visitors.slice().reverse().map(v => `
       <tr>
-        <td>${String(v.number).padStart(3,'0')}</td>
+        <td>${escapeHtml(v.ticketNumber)}</td>
+        ${showCounterCol ? `<td>${escapeHtml((counterById(v.counterId)||{}).label || v.counterId)}</td>` : ''}
         <td>${escapeHtml(v.name || '—')}</td>
         <td>${escapeHtml(v.phone || '—')}</td>
         <td class="service-cell" title="${escapeHtml(v.service || '—')}">${escapeHtml(v.service || '—')}</td>
@@ -1349,8 +1322,8 @@
         <td><span class="status-pill ${v.calledAt ? 'called' : 'waiting'}">${v.calledAt ? 'Called' : 'Waiting'}</span></td>
         <td>
           ${v.helped
-            ? `<span class="status-pill called">Helped</span> <button class="table-action-btn" data-number="${v.number}" data-helped="false">Undo</button>`
-            : `<button class="table-action-btn primary" data-number="${v.number}" data-helped="true">Mark helped</button>`
+            ? `<span class="status-pill called">Helped</span> <button class="table-action-btn" data-ticket="${escapeHtml(v.ticketNumber)}" data-helped="false">Undo</button>`
+            : `<button class="table-action-btn primary" data-ticket="${escapeHtml(v.ticketNumber)}" data-helped="true">Mark helped</button>`
           }
         </td>
       </tr>
@@ -1359,7 +1332,11 @@
       <div class="table-scroll">
         <table class="visitor-table">
           <thead>
-            <tr><th>#</th><th>Name</th><th>Phone</th><th>Needs help with</th><th>Registered</th><th>Called</th><th>Status</th><th>Helped</th></tr>
+            <tr>
+              <th>#</th>
+              ${showCounterCol ? '<th>Counter</th>' : ''}
+              <th>Name</th><th>Phone</th><th>Needs help with</th><th>Registered</th><th>Called</th><th>Status</th><th>Helped</th>
+            </tr>
           </thead>
           <tbody>${rows}</tbody>
         </table>
@@ -1368,12 +1345,12 @@
     if(toggleHelpedFn){
       wrap.querySelectorAll('.table-action-btn').forEach(btn=>{
         btn.onclick = async ()=>{
-          const number = parseInt(btn.getAttribute('data-number'), 10);
+          const ticketNumber = btn.getAttribute('data-ticket');
           const helped = btn.getAttribute('data-helped') === 'true';
           try{
-            const data = await toggleHelpedFn(number, helped);
+            const data = await toggleHelpedFn(ticketNumber, helped);
             renderVisitorTable(containerId, data.visitors, toggleHelpedFn);
-          }catch(e){ /* handled by auth/offline handlers */ }
+          }catch(e){ /* handled */ }
         };
       });
     }
@@ -1384,12 +1361,12 @@
     else if(view === 'register') renderRegister();
     else if(view === 'display') renderDisplay();
     else if(view === 'call-login') renderCallLogin();
-    else if(view === 'call-desk') renderCallDesk();
+    else if(view === 'call-desk') enterCallDesk();
     else if(view === 'admin-login') renderAdminLogin();
     else if(view === 'admin-panel') renderAdminPanel();
   }
 
-  window.__app = { goto, openRegister };
+  window.__app = { goto, openRegisterFlow };
 
   (async function init(){
     try{ state = await api.getState(); }catch(e){ /* fall back to defaults, retried on poll */ }

@@ -6,7 +6,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'state.json');
 const CSV_FILE = path.join(__dirname, 'visitors.csv');
-const CSV_HEADER = 'Number,Name,Phone,Service,RegisteredAt,CalledAt,Helped\n';
+const CSV_HEADER = 'Counter,TicketNumber,Name,Phone,Service,RegisteredAt,CalledAt,Helped\n';
 const REDIS_KEY = 'queue-app-state';
 
 // Change these — either edit the defaults below, or (recommended) set
@@ -19,8 +19,6 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin1234';
 // over plain HTTPS — see README). When both variables are set, all queue
 // and visitor data is stored there instead of a local file, so it survives
 // a fresh deploy on hosts with ephemeral disks (like Render's free tier).
-// Without these set, the app falls back to a local file, which works fine
-// for local use but is wiped by a redeploy on such hosts.
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 const usingUpstash = !!(UPSTASH_URL && UPSTASH_TOKEN);
@@ -57,9 +55,10 @@ function ensureCsvFile() {
   }
 }
 
-function appendVisitorToCsv(visitor) {
+function appendVisitorToCsv(visitor, counter) {
   const row = [
-    visitor.number,
+    csvEscape(counter ? counter.label : visitor.counterId),
+    csvEscape(visitor.ticketNumber),
     csvEscape(visitor.name),
     csvEscape(visitor.phone),
     csvEscape(visitor.service),
@@ -77,30 +76,44 @@ const DEFAULT_STATE = {
   welcomeMessage: "Choose what you're here to do.",
   ticketMessage: "We'll help you in order.",
   privacyNotice: "Your name, phone number, and selected service are used only to manage today's queue and are deleted after the event.",
-  services: [
-    'Renewal of Passports',
-    'Applications for Registration of Birth / Citizenship / Dual Citizenships',
-    'Driving License Renewal',
-    'Registration of Marriages / Death',
-    'Application for Marriage, Death Certificate extracts',
-    'Attestations',
-    'Power of Attorneys',
-    'Affidavits',
-    'Legalization of Documents certified by the Ministry for Foreign Affairs, Denmark'
+
+  // Each counter runs its own independent ticket sequence and its own
+  // "now serving" number — so one counter being faster or slower than
+  // another never affects the other's numbering.
+  counters: [
+    { id: 'counter1', label: 'Counter 1', prefix: '1', lastIssued: 0, nowServing: 0, lastRecallAt: null, allowOther: false },
+    { id: 'counter2', label: 'Counter 2', prefix: '2', lastIssued: 0, nowServing: 0, lastRecallAt: null, allowOther: true }
   ],
-  lastIssued: 0,
-  nowServing: 0,
-  lastRecallAt: null,
+
+  // Every service belongs to exactly one counter. "Other" is not a normal
+  // service — it's a free-text option offered on whichever counter(s)
+  // have allowOther: true (see the counters above).
+  services: [
+    { name: 'Passport', counterId: 'counter1' },
+    { name: 'Emergency Travel Documents', counterId: 'counter1' },
+    { name: 'Dual Citizenship', counterId: 'counter1' },
+    { name: 'Registration of Marriages', counterId: 'counter1' },
+    { name: 'Attestation / Legalization (PoA, Affidavits, No objections)', counterId: 'counter1' },
+    { name: 'Government Leave Extensions', counterId: 'counter1' },
+    { name: 'Life Certificates', counterId: 'counter1' },
+    { name: 'Registration of Birth, Citizenship and Passport for Newborn', counterId: 'counter2' },
+    { name: 'Late Birth and Citizenship', counterId: 'counter2' },
+    { name: 'Driving License', counterId: 'counter2' },
+    { name: 'Registration of Death', counterId: 'counter2' },
+    { name: 'VISA matters', counterId: 'counter2' }
+  ],
+
   registrationPaused: false,
   pausedMessage: "We're not issuing new numbers right now. Please check back shortly.",
   updatedAt: Date.now(),
-  visitors: [] // { number, name, phone, service, registeredAt, calledAt, helped }
+  visitors: [] // { ticketNumber, counterId, counterSeq, name, phone, service, registeredAt, calledAt, helped }
 };
 
 function mergeWithDefaults(parsed) {
   return {
     ...DEFAULT_STATE,
     ...parsed,
+    counters: Array.isArray(parsed.counters) ? parsed.counters : DEFAULT_STATE.counters,
     services: Array.isArray(parsed.services) ? parsed.services : DEFAULT_STATE.services,
     visitors: Array.isArray(parsed.visitors) ? parsed.visitors : []
   };
@@ -130,8 +143,6 @@ function persist() {
   if (usingUpstash) {
     upstashSet(REDIS_KEY, json).catch(err => console.error('Failed to save state to Upstash:', err.message));
   }
-  // Always also mirror to a local file — convenient for local use, and a
-  // harmless (if ephemeral) extra copy when Upstash is the primary store.
   fs.writeFile(DATA_FILE, json, (err) => {
     if (err) console.error('Failed to save state.json locally:', err);
   });
@@ -150,14 +161,16 @@ function publicState() {
     welcomeMessage: state.welcomeMessage,
     ticketMessage: state.ticketMessage,
     privacyNotice: state.privacyNotice,
+    counters: state.counters,
     services: state.services,
-    lastIssued: state.lastIssued,
-    nowServing: state.nowServing,
-    lastRecallAt: state.lastRecallAt,
     registrationPaused: state.registrationPaused,
     pausedMessage: state.pausedMessage,
     updatedAt: state.updatedAt
   };
+}
+
+function findCounter(counterId) {
+  return state.counters.find(c => c.id === counterId);
 }
 
 function checkPassword(expected) {
@@ -201,9 +214,10 @@ app.post('/api/register', (req, res) => {
 
   const name = ((req.body && req.body.name) || '').toString().trim().slice(0, 80);
   const phone = ((req.body && req.body.phone) || '').toString().trim().slice(0, 40);
-  const service = ((req.body && req.body.service) || '').toString().trim().slice(0, 120);
+  const rawService = ((req.body && req.body.service) || '').toString().trim().slice(0, 160);
+  const counterId = ((req.body && req.body.counterId) || '').toString().trim();
 
-  if (!name || !service) {
+  if (!name || !rawService) {
     return res.status(400).json({ error: 'Name and service are required.' });
   }
   if (!isValidName(name)) {
@@ -213,13 +227,25 @@ app.post('/api/register', (req, res) => {
     return res.status(400).json({ error: 'Enter a valid phone number (digits only, at least 7 digits).' });
   }
 
-  state.lastIssued += 1;
-  const number = state.lastIssued;
+  const counter = findCounter(counterId);
+  if (!counter) {
+    return res.status(400).json({ error: 'Please choose a valid service.' });
+  }
+  const knownService = state.services.some(s => s.counterId === counterId && s.name === rawService);
+  if (!knownService && !counter.allowOther) {
+    return res.status(400).json({ error: 'Please choose a valid service.' });
+  }
+
+  counter.lastIssued += 1;
+  const counterSeq = counter.lastIssued;
+  const ticketNumber = `${counter.prefix}-${String(counterSeq).padStart(3, '0')}`;
   const visitor = {
-    number,
+    ticketNumber,
+    counterId,
+    counterSeq,
     name,
     phone,
-    service,
+    service: rawService,
     registeredAt: Date.now(),
     calledAt: null,
     helped: false
@@ -227,13 +253,13 @@ app.post('/api/register', (req, res) => {
   state.visitors.push(visitor);
   state.updatedAt = Date.now();
   persist();
-  appendVisitorToCsv(visitor);
+  appendVisitorToCsv(visitor, counter);
 
-  res.json({ number, state: publicState() });
+  res.json({ ticketNumber, counterId, counterSeq, state: publicState() });
 });
 
 /* ------------------------------------------------------------------ */
-/* Call desk (password protected): call next / recall                  */
+/* Call desk (password protected): call next / recall, per counter     */
 /* ------------------------------------------------------------------ */
 
 app.post('/api/call/login', (req, res) => {
@@ -246,9 +272,11 @@ app.get('/api/call/state', requireCall, (req, res) => {
 });
 
 app.post('/api/call/next', requireCall, (req, res) => {
-  if (state.nowServing < state.lastIssued) {
-    state.nowServing += 1;
-    const visitor = state.visitors.find(v => v.number === state.nowServing);
+  const counter = findCounter((req.body && req.body.counterId || '').toString());
+  if (!counter) return res.status(400).json({ error: 'Unknown counter.' });
+  if (counter.nowServing < counter.lastIssued) {
+    counter.nowServing += 1;
+    const visitor = state.visitors.find(v => v.counterId === counter.id && v.counterSeq === counter.nowServing);
     if (visitor) visitor.calledAt = Date.now();
     state.updatedAt = Date.now();
     persist();
@@ -257,20 +285,24 @@ app.post('/api/call/next', requireCall, (req, res) => {
 });
 
 app.post('/api/call/recall', requireCall, (req, res) => {
-  state.lastRecallAt = Date.now();
+  const counter = findCounter((req.body && req.body.counterId || '').toString());
+  if (!counter) return res.status(400).json({ error: 'Unknown counter.' });
+  counter.lastRecallAt = Date.now();
   state.updatedAt = Date.now();
   persist();
   res.json(publicState());
 });
 
 app.get('/api/call/visitors', requireCall, (req, res) => {
-  res.json({ visitors: state.visitors });
+  const counterId = (req.query.counterId || '').toString();
+  const list = counterId ? state.visitors.filter(v => v.counterId === counterId) : state.visitors;
+  res.json({ visitors: list });
 });
 
 function setVisitorHelped(req, res) {
-  const number = parseInt(req.body && req.body.number, 10);
+  const ticketNumber = ((req.body && req.body.ticketNumber) || '').toString();
   const helped = !!(req.body && req.body.helped);
-  const visitor = state.visitors.find(v => v.number === number);
+  const visitor = state.visitors.find(v => v.ticketNumber === ticketNumber);
   if (!visitor) {
     return res.status(404).json({ error: 'Visitor not found.' });
   }
@@ -283,7 +315,7 @@ app.post('/api/call/visitors/helped', requireCall, setVisitorHelped);
 app.post('/api/admin/visitors/helped', requireAdmin, setVisitorHelped);
 
 /* ------------------------------------------------------------------ */
-/* Admin (password protected): visitor list, event name, reset         */
+/* Admin (password protected)                                          */
 /* ------------------------------------------------------------------ */
 
 app.post('/api/admin/login', (req, res) => {
@@ -294,22 +326,25 @@ app.post('/api/admin/login', (req, res) => {
 app.get('/api/admin/visitors', requireAdmin, (req, res) => {
   res.json({
     title: state.title,
-    nowServing: state.nowServing,
-    lastIssued: state.lastIssued,
+    counters: state.counters,
     visitors: state.visitors
   });
 });
 
 function visitorsToCsv(visitors) {
-  const rows = visitors.map(v => [
-    v.number,
-    csvEscape(v.name),
-    csvEscape(v.phone),
-    csvEscape(v.service),
-    new Date(v.registeredAt).toISOString(),
-    v.calledAt ? new Date(v.calledAt).toISOString() : '',
-    v.helped ? 'true' : 'false'
-  ].join(','));
+  const rows = visitors.map(v => {
+    const counter = findCounter(v.counterId);
+    return [
+      csvEscape(counter ? counter.label : v.counterId),
+      csvEscape(v.ticketNumber),
+      csvEscape(v.name),
+      csvEscape(v.phone),
+      csvEscape(v.service),
+      new Date(v.registeredAt).toISOString(),
+      v.calledAt ? new Date(v.calledAt).toISOString() : '',
+      v.helped ? 'true' : 'false'
+    ].join(',');
+  });
   return CSV_HEADER + rows.join('\n') + (rows.length ? '\n' : '');
 }
 
@@ -367,7 +402,8 @@ app.post('/api/admin/import', requireAdmin, (req, res) => {
 
   const header = rows[0].map(h => h.trim().toLowerCase());
   const col = (name) => header.indexOf(name);
-  const idxNumber = col('number');
+  const idxCounter = col('counter');
+  const idxTicket = col('ticketnumber');
   const idxName = col('name');
   const idxPhone = col('phone');
   const idxService = col('service');
@@ -375,19 +411,20 @@ app.post('/api/admin/import', requireAdmin, (req, res) => {
   const idxCalledAt = col('calledat');
   const idxHelped = col('helped');
 
-  if ([idxNumber, idxName, idxPhone, idxService].includes(-1)) {
-    return res.status(400).json({ error: 'The header row must include Number, Name, Phone, and Service columns.' });
+  if ([idxCounter, idxTicket, idxName, idxPhone, idxService].includes(-1)) {
+    return res.status(400).json({ error: 'The header row must include Counter, TicketNumber, Name, Phone, and Service columns.' });
   }
 
   const errors = [];
-  const seenNumbers = new Set();
+  const seenTickets = new Set();
   const newVisitors = [];
 
   for (let i = 1; i < rows.length; i++) {
     const r = rows[i];
-    const rowNum = i + 1; // matches the row number a spreadsheet would show
+    const rowNum = i + 1;
 
-    const numberStr = (r[idxNumber] || '').trim();
+    const counterLabel = (r[idxCounter] || '').trim();
+    const ticketNumber = (r[idxTicket] || '').trim();
     const name = (r[idxName] || '').trim();
     const phone = (r[idxPhone] || '').trim();
     const service = (r[idxService] || '').trim();
@@ -395,15 +432,25 @@ app.post('/api/admin/import', requireAdmin, (req, res) => {
     const calledAtStr = idxCalledAt > -1 ? (r[idxCalledAt] || '').trim() : '';
     const helpedStr = idxHelped > -1 ? (r[idxHelped] || '').trim().toLowerCase() : '';
 
-    const number = parseInt(numberStr, 10);
-    if (!Number.isInteger(number) || number <= 0) {
-      errors.push(`Row ${rowNum}: "${numberStr}" isn't a valid ticket number.`);
+    const counter = state.counters.find(c => c.label.toLowerCase() === counterLabel.toLowerCase());
+    if (!counter) {
+      errors.push(`Row ${rowNum}: "${counterLabel}" doesn't match a known counter.`);
       continue;
     }
-    if (seenNumbers.has(number)) {
-      errors.push(`Row ${rowNum}: number ${number} is used more than once.`);
+    if (!ticketNumber) {
+      errors.push(`Row ${rowNum}: TicketNumber can't be blank.`);
       continue;
     }
+    if (seenTickets.has(ticketNumber)) {
+      errors.push(`Row ${rowNum}: ticket number ${ticketNumber} is used more than once.`);
+      continue;
+    }
+    const seqMatch = ticketNumber.match(/(\d+)\s*$/);
+    if (!seqMatch) {
+      errors.push(`Row ${rowNum}: couldn't find a number at the end of "${ticketNumber}".`);
+      continue;
+    }
+    const counterSeq = parseInt(seqMatch[1], 10);
     if (!name || !phone || !service) {
       errors.push(`Row ${rowNum}: name, phone, and service can't be empty.`);
       continue;
@@ -429,9 +476,9 @@ app.post('/api/admin/import', requireAdmin, (req, res) => {
       calledAt = parsed;
     }
 
-    seenNumbers.add(number);
+    seenTickets.add(ticketNumber);
     const helped = ['true', 'yes', '1'].includes(helpedStr);
-    newVisitors.push({ number, name, phone, service, registeredAt, calledAt, helped });
+    newVisitors.push({ ticketNumber, counterId: counter.id, counterSeq, name, phone, service, registeredAt, calledAt, helped });
   }
 
   if (errors.length > 0) {
@@ -440,17 +487,19 @@ app.post('/api/admin/import', requireAdmin, (req, res) => {
       details: errors.slice(0, 10)
     });
   }
-
   if (newVisitors.length === 0) {
     return res.status(400).json({ error: 'No valid visitor rows found in that file.' });
   }
 
-  newVisitors.sort((a, b) => a.number - b.number);
-  const maxNumber = newVisitors[newVisitors.length - 1].number;
+  newVisitors.sort((a, b) => a.counterId === b.counterId ? a.counterSeq - b.counterSeq : a.counterId.localeCompare(b.counterId));
 
   state.visitors = newVisitors;
-  state.lastIssued = maxNumber;
-  state.nowServing = Math.min(state.nowServing, maxNumber);
+  state.counters.forEach(counter => {
+    const seqs = newVisitors.filter(v => v.counterId === counter.id).map(v => v.counterSeq);
+    const maxSeq = seqs.length ? Math.max(...seqs) : 0;
+    counter.lastIssued = maxSeq;
+    counter.nowServing = Math.min(counter.nowServing, maxSeq);
+  });
   state.updatedAt = Date.now();
   persist();
 
@@ -510,9 +559,14 @@ app.post('/api/admin/pause-message', requireAdmin, (req, res) => {
 });
 
 app.post('/api/admin/services/add', requireAdmin, (req, res) => {
-  const service = ((req.body && req.body.service) || '').toString().trim().slice(0, 120);
-  if (service && !state.services.includes(service)) {
-    state.services.push(service);
+  const name = ((req.body && req.body.service) || '').toString().trim().slice(0, 160);
+  const counterId = ((req.body && req.body.counterId) || '').toString();
+  const counter = findCounter(counterId);
+  if (!name || !counter) {
+    return res.status(400).json({ error: 'Service name and counter are required.' });
+  }
+  if (!state.services.some(s => s.name === name)) {
+    state.services.push({ name, counterId });
     state.updatedAt = Date.now();
     persist();
   }
@@ -520,16 +574,60 @@ app.post('/api/admin/services/add', requireAdmin, (req, res) => {
 });
 
 app.post('/api/admin/services/remove', requireAdmin, (req, res) => {
-  const service = ((req.body && req.body.service) || '').toString();
-  state.services = state.services.filter(s => s !== service);
+  const name = ((req.body && req.body.service) || '').toString();
+  state.services = state.services.filter(s => s.name !== name);
+  state.updatedAt = Date.now();
+  persist();
+  res.json(publicState());
+});
+
+app.post('/api/admin/counters/add', requireAdmin, (req, res) => {
+  const label = ((req.body && req.body.label) || '').toString().trim().slice(0, 40);
+  const prefix = ((req.body && req.body.prefix) || '').toString().trim().slice(0, 6);
+  const allowOther = !!(req.body && req.body.allowOther);
+  if (!label || !prefix) {
+    return res.status(400).json({ error: 'Label and prefix are required.' });
+  }
+  const id = 'counter_' + Date.now().toString(36);
+  state.counters.push({ id, label, prefix, lastIssued: 0, nowServing: 0, lastRecallAt: null, allowOther });
+  state.updatedAt = Date.now();
+  persist();
+  res.json(publicState());
+});
+
+app.post('/api/admin/counters/update', requireAdmin, (req, res) => {
+  const id = ((req.body && req.body.id) || '').toString();
+  const counter = findCounter(id);
+  if (!counter) return res.status(404).json({ error: 'Counter not found.' });
+  if (req.body.label) counter.label = req.body.label.toString().trim().slice(0, 40);
+  if (req.body.prefix) counter.prefix = req.body.prefix.toString().trim().slice(0, 6);
+  if (typeof req.body.allowOther === 'boolean') counter.allowOther = req.body.allowOther;
+  state.updatedAt = Date.now();
+  persist();
+  res.json(publicState());
+});
+
+app.post('/api/admin/counters/remove', requireAdmin, (req, res) => {
+  const id = ((req.body && req.body.id) || '').toString();
+  const counter = findCounter(id);
+  if (!counter) return res.status(404).json({ error: 'Counter not found.' });
+  const hasServices = state.services.some(s => s.counterId === id);
+  const hasVisitors = state.visitors.some(v => v.counterId === id);
+  if (hasServices || hasVisitors) {
+    return res.status(400).json({ error: "Move or remove this counter's services and visitors first." });
+  }
+  state.counters = state.counters.filter(c => c.id !== id);
   state.updatedAt = Date.now();
   persist();
   res.json(publicState());
 });
 
 app.post('/api/admin/reset', requireAdmin, (req, res) => {
-  state.lastIssued = 0;
-  state.nowServing = 0;
+  state.counters.forEach(c => {
+    c.lastIssued = 0;
+    c.nowServing = 0;
+    c.lastRecallAt = null;
+  });
   state.visitors = [];
   state.updatedAt = Date.now();
   persist();
