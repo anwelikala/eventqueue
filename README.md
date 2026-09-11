@@ -142,10 +142,17 @@ into a green **"Completed"** badge with an **Undo** link, in case they
 need further help later. This is separate from "Called" status, and
 either password (call desk or admin) can toggle it.
 
-This also round-trips through the CSV export/import as a `Completed`
-column (`true`/`false`). If you have an older CSV file that still says
-`Helped` in its header, importing it still works — both header names are
-accepted.
+The visitor table also has a **"Completed At"** column, right after
+"Called," showing the exact time someone was marked completed. It's
+blank for anyone still waiting or just called, and clears back to blank
+if you click "Undo" — it always reflects the *current* completed status,
+not a permanent history of it.
+
+This also round-trips through the CSV export/import as `CompletedAt` and
+`Completed` columns. If you have an older CSV file from before either of
+these existed, importing it still works — both `Helped` and `Completed`
+are accepted as the completion-status header, and `CompletedAt` is
+optional on import.
 
 ## Pausing new registrations
 
@@ -179,7 +186,7 @@ does, since reaching the ticket page always follows a click.
 
 Click **Upload CSV** (next to Download CSV, on the admin page). The CSV
 columns are: `Counter, TicketNumber, Name, Phone, Service, RegisteredAt,
-CalledAt, Completed`.
+CalledAt, CompletedAt, Completed`.
 
 1. **Download CSV** to get the current list (all counters together).
 2. Edit it in Excel/Sheets — fix details, change `Completed`, etc.

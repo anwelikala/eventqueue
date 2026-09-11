@@ -6,7 +6,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'state.json');
 const CSV_FILE = path.join(__dirname, 'visitors.csv');
-const CSV_HEADER = 'Counter,TicketNumber,Name,Phone,Service,RegisteredAt,CalledAt,Completed\n';
+const CSV_HEADER = 'Counter,TicketNumber,Name,Phone,Service,RegisteredAt,CalledAt,CompletedAt,Completed\n';
 const REDIS_KEY = 'queue-app-state';
 
 // Change these — either edit the defaults below, or (recommended) set
@@ -64,6 +64,7 @@ function appendVisitorToCsv(visitor, counter) {
     csvEscape(visitor.service),
     new Date(visitor.registeredAt).toISOString(),
     visitor.calledAt ? new Date(visitor.calledAt).toISOString() : '',
+    visitor.completedAt ? new Date(visitor.completedAt).toISOString() : '',
     visitor.helped ? 'true' : 'false'
   ].join(',') + '\n';
   fs.appendFile(CSV_FILE, row, (err) => {
@@ -262,7 +263,8 @@ app.post('/api/register', (req, res) => {
     service: rawService,
     registeredAt: Date.now(),
     calledAt: null,
-    helped: false
+    helped: false,
+    completedAt: null
   };
   state.visitors.push(visitor);
   state.updatedAt = Date.now();
@@ -321,6 +323,7 @@ function setVisitorHelped(req, res) {
     return res.status(404).json({ error: 'Visitor not found.' });
   }
   visitor.helped = helped;
+  visitor.completedAt = helped ? Date.now() : null;
   state.updatedAt = Date.now();
   persist();
   res.json({ visitors: state.visitors });
@@ -356,6 +359,7 @@ function visitorsToCsv(visitors) {
       csvEscape(v.service),
       new Date(v.registeredAt).toISOString(),
       v.calledAt ? new Date(v.calledAt).toISOString() : '',
+      v.completedAt ? new Date(v.completedAt).toISOString() : '',
       v.helped ? 'true' : 'false'
     ].join(',');
   });
@@ -423,6 +427,7 @@ app.post('/api/admin/import', requireAdmin, (req, res) => {
   const idxService = col('service');
   const idxRegisteredAt = col('registeredat');
   const idxCalledAt = col('calledat');
+  const idxCompletedAt = col('completedat');
   const idxHelped = col('completed') > -1 ? col('completed') : col('helped'); // accept either header name
 
   if ([idxCounter, idxTicket, idxName, idxPhone, idxService].includes(-1)) {
@@ -444,6 +449,7 @@ app.post('/api/admin/import', requireAdmin, (req, res) => {
     const service = (r[idxService] || '').trim();
     const registeredAtStr = idxRegisteredAt > -1 ? (r[idxRegisteredAt] || '').trim() : '';
     const calledAtStr = idxCalledAt > -1 ? (r[idxCalledAt] || '').trim() : '';
+    const completedAtStr = idxCompletedAt > -1 ? (r[idxCompletedAt] || '').trim() : '';
     const helpedStr = idxHelped > -1 ? (r[idxHelped] || '').trim().toLowerCase() : '';
 
     const counter = state.counters.find(c => c.label.toLowerCase() === counterLabel.toLowerCase());
@@ -490,9 +496,19 @@ app.post('/api/admin/import', requireAdmin, (req, res) => {
       calledAt = parsed;
     }
 
+    let completedAt = null;
+    if (completedAtStr) {
+      const parsed = Date.parse(completedAtStr);
+      if (isNaN(parsed)) {
+        errors.push(`Row ${rowNum}: "${completedAtStr}" isn't a valid date for CompletedAt.`);
+        continue;
+      }
+      completedAt = parsed;
+    }
+
     seenTickets.add(ticketNumber);
     const helped = ['true', 'yes', '1'].includes(helpedStr);
-    newVisitors.push({ ticketNumber, counterId: counter.id, counterSeq, name, phone, service, registeredAt, calledAt, helped });
+    newVisitors.push({ ticketNumber, counterId: counter.id, counterSeq, name, phone, service, registeredAt, calledAt, helped, completedAt });
   }
 
   if (errors.length > 0) {

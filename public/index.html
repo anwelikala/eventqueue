@@ -1377,6 +1377,7 @@
         <td class="service-cell" title="${escapeHtml(v.service || '—')}">${escapeHtml(v.service || '—')}</td>
         <td>${fmtTime(v.registeredAt)}</td>
         <td>${fmtTime(v.calledAt)}</td>
+        <td>${fmtTime(v.completedAt)}</td>
         <td><span class="status-pill ${v.calledAt ? 'called' : 'waiting'}">${v.calledAt ? 'Called' : 'Waiting'}</span></td>
         <td>
           ${v.helped
@@ -1393,7 +1394,7 @@
             <tr>
               <th>#</th>
               ${showCounterCol ? '<th>Counter</th>' : ''}
-              <th>Name</th><th>Phone</th><th>Needs help with</th><th>Registered</th><th>Called</th><th>Status</th><th>Completed</th>
+              <th>Name</th><th>Phone</th><th>Needs help with</th><th>Registered</th><th>Called</th><th>Completed At</th><th>Status</th><th>Completed</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
