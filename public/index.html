@@ -565,7 +565,10 @@
   }
 
   function optionsForCounter(counter){
-    const services = (state.services || []).filter(s => s.counterId === counter.id);
+    const services = (state.services || [])
+      .filter(s => s.counterId === counter.id)
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name));
     let html = services.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
     if(counter.allowOther){
       html += `<option value="${OTHER_PREFIX}${counter.id}">Other (please specify)</option>`;
@@ -1255,7 +1258,7 @@
       const counters = state.counters || [];
       const services = state.services || [];
       wrap.innerHTML = counters.map(c => {
-        const list = services.filter(s => s.counterId === c.id);
+        const list = services.filter(s => s.counterId === c.id).slice().sort((a, b) => a.name.localeCompare(b.name));
         return `
           <div class="service-group">
             <h4>${escapeHtml(c.label)}</h4>

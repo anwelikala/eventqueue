@@ -56,7 +56,8 @@ the box there are two:
   **"Other (please specify)"** option for anything not listed.
 
 A visitor picks a service on the registration form (grouped by counter in
-the dropdown) and is automatically issued the next number from the
+the dropdown, sorted alphabetically within each counter, with "Other"
+always pinned last) and is automatically issued the next number from the
 correct counter — so if Counter B is moving faster than Counter A that
 day, it simply gets further through its own numbers; the two never block
 each other.
@@ -75,9 +76,10 @@ each other.
   another counter first, or clear its visitors via Reset.
 
 **Managing services** (Admin page → "Services"): add or remove services
-under each counter's own section. There's no way to move a service
-between counters directly — remove it from one and re-add it under the
-other.
+under each counter's own section — shown alphabetically there too, so the
+admin view always matches what visitors see. There's no way to move a
+service between counters directly — remove it from one and re-add it
+under the other.
 
 ## Call desk: choosing a counter
 
