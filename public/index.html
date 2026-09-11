@@ -65,6 +65,11 @@
   .field-error{color:var(--rust);font-size:13px;margin:-10px 0 16px;display:none;}
   .field-error.show{display:block;}
   .privacy-note{margin:16px 0 0;font-size:12px;line-height:1.5;color:#8a8d9e;text-align:center;}
+  .service-notice{
+    display:flex; gap:8px; align-items:flex-start;
+    background:#FBF0DD; border:1px solid var(--amber); border-radius:10px;
+    padding:10px 12px; margin-bottom:12px; font-size:12.5px; color:var(--amber-deep); line-height:1.4;
+  }
 
   .ticket-wrap{width:100%;max-width:380px;}
   .ticket{position:relative;background:#fff;border-radius:4px;padding:36px 28px 30px;text-align:center;box-shadow:var(--shadow);background-image: repeating-linear-gradient(180deg, transparent, transparent 27px, rgba(27,36,64,0.05) 28px);}
@@ -347,6 +352,11 @@
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
       return res.json();
     },
+    adminSetServiceNotice: async (message) => {
+      const res = await apiCall('/api/admin/service-notice', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')), body: JSON.stringify({ message }) });
+      if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
+      return res.json();
+    },
     adminSetPause: async (paused) => {
       const res = await apiCall('/api/admin/pause', { method:'POST', headers: Object.assign({'Content-Type':'application/json'}, authHeaders('admin')), body: JSON.stringify({ paused }) });
       if(res.status === 401){ handleAuthFailure('admin'); throw new Error('unauthorized'); }
@@ -588,6 +598,12 @@
             </div>
             <div class="field-group">
               <label class="field-label" for="f-service">What do you need help with?</label>
+              ${state.serviceNotice ? `
+                <div class="service-notice">
+                  <span>⚠️</span>
+                  <span>${escapeHtml(state.serviceNotice)}</span>
+                </div>
+              ` : ''}
               <select class="text-input" id="f-service" required>
                 <option value="" disabled selected>Select a service</option>
                 ${counters.map(c => `<optgroup label="${escapeHtml(c.label)}">${optionsForCounter(c)}</optgroup>`).join('')}
@@ -1078,6 +1094,11 @@
               <input class="text-input" id="multi-counter-notice-input" value="${escapeHtml(state.multiCounterNotice || '')}" maxlength="200">
               <div class="save-row"><button class="ghost-btn" id="save-multi-counter-notice-btn" style="flex:1;">Save notice</button></div>
             </div>
+            <div class="field-group" style="margin-top:20px;">
+              <label class="field-label" for="service-notice-input">Service selection notice (shown above the service dropdown)</label>
+              <input class="text-input" id="service-notice-input" value="${escapeHtml(state.serviceNotice || '')}" maxlength="200">
+              <div class="save-row"><button class="ghost-btn" id="save-service-notice-btn" style="flex:1;">Save notice</button></div>
+            </div>
           </div>
         </div>
 
@@ -1141,6 +1162,11 @@
       const val = document.getElementById('multi-counter-notice-input').value.trim();
       if(!val) return;
       try{ state = await api.adminSetMultiCounterNotice(val); showToast('Notice saved'); }catch(e){}
+    };
+    document.getElementById('save-service-notice-btn').onclick = async ()=>{
+      const val = document.getElementById('service-notice-input').value.trim();
+      if(!val) return;
+      try{ state = await api.adminSetServiceNotice(val); showToast('Notice saved'); }catch(e){}
     };
     document.getElementById('pause-toggle-btn').onclick = async ()=>{
       try{

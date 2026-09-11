@@ -110,6 +110,15 @@ independent ticket for Counter B.
 - A queue reset clears all of this automatically (stale tickets from
   before a reset are detected and dropped).
 
+## Service selection notice
+
+A boxed amber warning appears right above the service dropdown on the
+registration form — by default: "Please choose carefully — your
+selection determines which counter you'll be queued at." This is
+editable from the **Admin** page, under "Landing page text," alongside
+the other notices. It's a separate field from the multi-counter notice
+and privacy notice, so each can be worded independently.
+
 ## Registered service shown on the ticket
 
 The visitor's own ticket page shows which service they registered for
@@ -121,9 +130,7 @@ they came in for.
 A separate, admin-editable line appears on the ticket page below the
 main ticket message — by default: "If you need services from more than
 one counter, please get a number for each." Edit it from the **Admin**
-page, under "Landing page text," alongside the other ticket text. This
-is intentionally a separate field from the ticket message and the
-registration form's privacy notice, so each can be worded independently.
+page, under "Landing page text," alongside the other ticket text.
 
 ## Marking visitors as completed
 

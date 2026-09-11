@@ -77,6 +77,7 @@ const DEFAULT_STATE = {
   ticketMessage: "We'll help you in order.",
   privacyNotice: "Your name, phone number, and selected service are used only to manage today's queue and are deleted after the event.",
   multiCounterNotice: "If you need services from more than one counter, please get a number for each.",
+  serviceNotice: "Please choose carefully — your selection determines which counter you'll be queued at.",
 
   // Each counter runs its own independent ticket sequence and its own
   // "now serving" number — so one counter being faster or slower than
@@ -163,6 +164,7 @@ function publicState() {
     ticketMessage: state.ticketMessage,
     privacyNotice: state.privacyNotice,
     multiCounterNotice: state.multiCounterNotice,
+    serviceNotice: state.serviceNotice,
     counters: state.counters,
     services: state.services,
     registrationPaused: state.registrationPaused,
@@ -555,6 +557,15 @@ app.post('/api/admin/multi-counter-notice', requireAdmin, (req, res) => {
   const message = ((req.body && req.body.message) || '').toString().trim().slice(0, 200);
   if (message) {
     state.multiCounterNotice = message;
+    persist();
+  }
+  res.json(publicState());
+});
+
+app.post('/api/admin/service-notice', requireAdmin, (req, res) => {
+  const message = ((req.body && req.body.message) || '').toString().trim().slice(0, 200);
+  if (message) {
+    state.serviceNotice = message;
     persist();
   }
   res.json(publicState());
