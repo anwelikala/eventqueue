@@ -149,12 +149,19 @@ accepted.
 
 ## Pausing new registrations
 
-This pauses registration **for all counters at once** — there's a single
-Pause/Resume toggle on the admin page, under "Queue overview," with an
-editable message shown to visitors while paused. Visitors who already
-have a ticket for a counter are unaffected and can still view it; only
-*new* registrations are blocked. Call desk, admin, and the display board
-keep working normally throughout a pause.
+This pauses registration **for all counters at once, for the general
+public** — there's a single Pause/Resume toggle on the admin page, under
+"Queue overview," with an editable message shown to visitors while
+paused. Visitors who already have a ticket for a counter are unaffected
+and can still view it; only *new* public registrations are blocked. Call
+desk, admin, and the display board keep working normally throughout a
+pause.
+
+**Admin can still register visitors while paused.** Any device logged
+into the Admin page sees the normal "Get my number" flow the whole time
+— useful for walk-ins or special cases staff need to handle manually even
+during a pause. This only applies to devices actually logged into Admin;
+everyone else sees the paused message with no way to register.
 
 ## Sound and visual alert — display board and ticket page
 

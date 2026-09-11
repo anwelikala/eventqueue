@@ -426,7 +426,7 @@
 
   /* ---------------- LANDING ---------------- */
   function renderLanding(){
-    const paused = state.registrationPaused;
+    const paused = state.registrationPaused && !isAdminLoggedIn();
     const counters = state.counters || [];
     const tickets = getStoredTickets();
     const validEntries = counters
@@ -514,7 +514,7 @@
       renderMyTickets(validEntries);
       return;
     }
-    if(state.registrationPaused){
+    if(state.registrationPaused && !isAdminLoggedIn()){
       renderPaused();
       return;
     }
@@ -693,8 +693,9 @@
       }
 
       try{
+        const headers = Object.assign({'Content-Type':'application/json'}, isAdminLoggedIn() ? authHeaders('admin') : {});
         const res = await apiCall('/api/register', {
-          method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, phone, service, counterId })
+          method:'POST', headers, body: JSON.stringify({ name, phone, service, counterId })
         });
         const result = await res.json();
         if(!res.ok){

@@ -218,7 +218,10 @@ function validateName(name) {
 }
 
 app.post('/api/register', (req, res) => {
-  if (state.registrationPaused) {
+  const suppliedPassword = req.headers['x-app-password'];
+  const isAdminRequest = !!(suppliedPassword && suppliedPassword === ADMIN_PASSWORD);
+
+  if (state.registrationPaused && !isAdminRequest) {
     return res.status(403).json({ error: state.pausedMessage || 'Registration is currently paused.' });
   }
 
